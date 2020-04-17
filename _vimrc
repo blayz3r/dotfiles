@@ -704,7 +704,6 @@ let g:undotree_SetFocusWhenToggle = 1
 "}}}
 
 "Git {{{
-"git-messnger
 nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e zsh -ic ga',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e tig blame -w '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gc :Git checkout %<CR>
