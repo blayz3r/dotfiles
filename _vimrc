@@ -10,7 +10,9 @@
 " Sections:
 "Vim-Plug Plugin Manager  {{{
 " set the run path
-call plug#begin('~/.vim/bundle') "plugins' root path
+call plug#begin('~/.vim/bundle')
+"plugins root path
+"All of your Plugs must be added before the following line
 "Starting screen
 Plug 'mhinz/vim-startify'
 "Airline
@@ -26,13 +28,14 @@ Plug 'junegunn/vim-easy-align'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'kshenoy/vim-signature'
 Plug 'dense-analysis/ale'
-Plug 'preservim/nerdcommenter'
+Plug 'tomtom/tcomment_vim'
 Plug 'blayz3r/vimcmdline'
 Plug 'ryanoasis/vim-devicons'
 Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }
 Plug 'lilydjwg/colorizer'
 Plug 'osyo-manga/vim-precious', { 'for': 'markdown' }
 Plug 'Shougo/context_filetype.vim'
+Plug 'mhinz/vim-signify'
 "Enhance motions
 Plug 'justinmk/vim-sneak'
 Plug 'tpope/vim-unimpaired'
@@ -57,18 +60,14 @@ Plug 'ervandew/supertab'
 Plug 'lervag/vimtex', {'for': ['tex', 'plaintex', 'bst']}
 "Search enhancer
 Plug 'junegunn/fzf',  { 'dir': '~/.fzf' }
-Plug 'blayz3r/fzf.vim'
+Plug 'junegunn/fzf.vim'
 Plug 'osyo-manga/vim-anzu'
 Plug 'osyo-manga/vim-over'
 Plug 'dyng/ctrlsf.vim'
 "R
 Plug 'jalvesaq/Nvim-R'
-Plug 'Shougo/echodoc.vim'
 " Git
 Plug 'tpope/vim-fugitive'
-Plug 'mhinz/vim-signify'
-Plug 'rhysd/git-messenger.vim'
-" All of your Plugs must be added before the following line
 call plug#end()            " required
 "}}}
 
@@ -158,7 +157,7 @@ set cmdheight=1
 " Add the unnamed register to the clipboard
 set clipboard+=unnamed
 "use vim internal diff
-set diffopt+=internal,algorithm:patience
+set diffopt+=vertical,internal,algorithm:patience
 " Add ignorance of whitespace to diff
 set diffopt+=iwhite
 
@@ -211,8 +210,10 @@ autocmd ColorScheme * hi! link Sneak Normal
 " colorscheme quantum
 " colorscheme one
 colorscheme onedark
+" colorscheme gruvbox
 "menu color
-highlight Pmenu guibg=#21252b
+highlight Pmenu guibg=#21252b 
+" hi PmenuSel gui=NONE guifg=WHITE
 " set background=dark
 set formatoptions-=o " don't start new lines w/ comment leader on pressing 'o'"
 
@@ -259,7 +260,7 @@ set previewpopup=height:10,width:60,border:off
 nnoremap <silent> <ESC> :<CR><ESC>
 "Font
 " set guifont=FiraCode_NF:h11:cANSI:qDRAFT
-set guifont=FuraMono_NF:h11:cANSI:qDRAFT
+set guifont=FiraMono_NF:h11:cANSI:qDRAFT
 " set guifont=InconsolataLGC_NF:h11:cANSI:qDRAFT
 "set guifont=InconsolataForPowerline_NF:h11:cANSI:qDRAFT
 "set guifont=Droid\ Sans\ Mono\ for\ Powerline\ Plus\ Nerd\ File\ Types:h11
@@ -300,16 +301,8 @@ map k gk
 nmap <Del> :Bc<cr>
 nmap <s-Del> :bw<cr>
 "
-" Close all the buffers
-nmap <C-Del> :%bd<cr>
-"
-"" Opens a new tab with the current buffer's path
-" Super useful when editing files in the same directory
-noremap <C-h> <C-w>h
-noremap <C-j> <C-w>j
-noremap <C-k> <C-w>k
-noremap <C-l> <C-w>l
-
+" Close all the buffers except current
+nmap <C-Del> :%bd\|e#\|bd#<cr>
 "Source
 nmap <leader>sa :so %<cr>
 "
@@ -330,6 +323,14 @@ autocmd BufReadPost *
             \ endif
 " Remember info about open buffers on close
 set viminfo^=%
+
+"Disable some signature mappings
+      let g:SignatureMap = {
+        \ 'GotoNextLineAlpha'  :  "",
+        \ 'GotoPrevLineAlpha'  :  "",
+        \ 'GotoNextSpotAlpha'  :  "",
+        \ 'GotoPrevSpotAlpha'  :  "",
+        \ }
 "}}}
 
 "Editing mappings {{{
@@ -338,7 +339,6 @@ set viminfo^=%
 nmap <M-h> :redir @+
 
 "" Remap VIM 0 to first non-blank character
-map 0 ^
 "Clean trailing blanks
 if has("autocmd")
     autocmd BufWritePre .sql,.m,.vim,.r,*.sas,*.java,*.txt,*.js,*.py,*.wiki,*.sh,*.coffee :call CleanExtraSpaces()
@@ -350,6 +350,17 @@ endif
 "" Command mode mappings.
 cnoremap <C-a> <Home>
 cnoremap <C-e> <End>
+"" 24 simple text objects
+"" ----------------------
+"" i_ i. i: i, i; i| i/ i\ i* i+ i- i#
+"" a_ a. a: a, a; a| a/ a\ a* a+ a- a#
+for char in [ '_', '.', ':', ',', ';', '<bar>', '/', '<bslash>', '*', '+', '-', '#' ]
+    execute 'xnoremap i' . char . ' :<C-u>normal! T' . char . 'vt' . char . '<CR>'
+    execute 'onoremap i' . char . ' :normal vi' . char . '<CR>'
+    execute 'xnoremap a' . char . ' :<C-u>normal! F' . char . 'vf' . char . '<CR>'
+    execute 'onoremap a' . char . ' :normal va' . char . '<CR>'
+endfor
+
 "
 " `<Tab>`/`<S-Tab>` to move between matches without leaving incremental search.
 " Note dependency on `'wildcharm'` being set to `<C-z>` in order for this to
@@ -452,11 +463,15 @@ vnoremap <silent> gv :call VisualSelection('gv', '')<CR>
 nmap <Leader>r  <Plug>ReplaceWithRegisterOperator
 nmap <Leader>rr <Plug>ReplaceWithRegisterLine
 xmap <Leader>r <Plug>ReplaceWithRegisterVisual
-"Google selection
+" Google selection
 nnoremap gb :OpenURL http://www.google.com/search?q=<cword><CR>
 nnoremap gx :OpenURL <cWORD><CR>
 vnoremap gb :call GoogleSelection()<CR>
 "CtrlSF
+" -R - Use regular expression pattern.
+" -I, -S - Search case-insensitively (-I) or case-sensitively (-S).
+" -C, -A, -B - Specify how many context lines to be printed, identical to their counterparts in Ag/Ack.
+" -W - Only match whole words.
 let g:ctrlsf_auto_preview = 1
 nmap        gV <Plug>CtrlSFCwordPath -W<CR>
 nmap     <M-k> <Plug>CtrlSFPrompt
@@ -467,6 +482,10 @@ inoremap <M-t> <Esc>:CtrlSFToggle<CR>
 let g:ctrlsf_auto_focus = {
             \ 'at': 'start',
             \ }
+"grep
+set grepprg=rg\ --vimgrep
+"file explorer
+nnoremap gof :!start explorer /select,%:p<CR>
 "}}}
 
 "Fuzzy File Search Setup {{{
@@ -498,20 +517,13 @@ let g:fzf_commands_expect = 'alt-enter,ctrl-x'
 " Mapping selecting mappings
 nmap <leader><tab> <plug>(fzf-maps-n)
 xmap <leader><tab> <plug>(fzf-maps-x)
+imap <c-x><c-f> <plug>(fzf-complete-path)
 omap <leader><tab> <plug>(fzf-maps-o)
 
-" Insert mode completion
-imap <c-x><c-k> <plug>(fzf-complete-word)
-imap <c-x><c-f> <plug>(fzf-complete-path)
-imap <c-x><c-j> <plug>(fzf-complete-file-ag)
-imap <c-x><c-l> <plug>(fzf-complete-line)
-
 " Make FZF mappings
-nnoremap <Leader>l :Lines<CR>
-nnoremap <Leader>bt :BTags<CR>
+nnoremap <Leader>t :BTags<CR>
 nnoremap <Leader>k :Rg! 
-nnoremap <Leader>gf :GFiles?<CR>
-nnoremap <Leader>y :Commands<CR>
+nnoremap <Leader>gf :GGrep<CR>
 nnoremap <Leader>h :MRU<CR>
 nnoremap <Leader>c :History:<CR>
 nnoremap <silent> <expr> <Leader><Leader> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":Files\<cr>"
@@ -527,24 +539,28 @@ nnoremap <silent> <expr> <Leader><Leader> (expand('%') =~ 'NERD_tree' ? "\<c-w>\
 " Similarly, we can apply it to fzf#vim#grep. To use ripgrep instead of ag:
 command! -bang -nargs=* Rg
             \ call fzf#vim#grep(
-            \   'rg --column --line-number --no-heading --color=always '.<q-args>, 1,
+            \   'rg --column --line-number --color=always '.<q-args>, 1,
             \   <bang>0 ? fzf#vim#with_preview('up:60%')
             \           : fzf#vim#with_preview('right:50%'),
             \   <bang>0)
 
-command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview', 'coderay {}']})
+command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview', 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {}']})
 
 " Likewise, Files command with preview window
 command! -bang -nargs=? -complete=dir Files
-    \ call fzf#vim#files(<q-args>, {'options': ['--preview', 'coderay {}']}, <bang>0)
+    \ call fzf#vim#files(<q-args>, {'options': ['--preview', 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {}']}, <bang>0)
 
-command! -bang -nargs=? -complete=dir GitFiles
-            \ call fzf#vim#gitfiles(<q-args>, {'options': ['--preview', 'coderay {}']}, <bang>0)
+" GGrep command to use git grep with fzf
+command! -bang -nargs=* GGrep
+  \ call fzf#vim#grep(
+  \   'git grep --line-number -- '.shellescape(<q-args>), 0,
+  \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
 
 nnoremap <silent> gv :Rg <C-R><C-W><CR>
 "FZF preview
 let g:fzf_preview_window = 'right:60%'
 " CTRL-A to select all and build quickfix list
+let $BAT_THEME = 'TwoDark'
 let $FZF_DEFAULT_OPTS = '--bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up'
 "Floating window
 let g:fzf_layout = {
@@ -558,7 +574,8 @@ let g:fzf_layout = {
     \ }}
 "ranger file explorer https://github.com/ranger/ranger/issues/1827
 "sudo -H pip3 install ranger-fm
-nnoremap <silent> - :call Flt_term_win('wsl -e zsh -ic ranger',0.9,0.6,'Todo')<CR>
+nnoremap <silent> - :call RangerExplorer('wsl -e zsh -ic rangervim',0.9,0.6,'Todo')<CR>
+" nnoremap <silent> - :call Flt_term_win('bash ranger',0.9,0.6,'Todo')<CR>
 
 "}}}
 
@@ -638,6 +655,8 @@ let g:NERDTrimTrailingWhitespace = 1
 "Youcompleteme fix
 let g:ycm_global_ycm_extra_conf = '~/.vim/bundle/youcompleteme/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
 let g:vimspector_enable_mappings = 'HUMAN'
+let g:ycm_auto_hover=''
+hi YCMInverse gui=underline
 " make YCM compatible with UltiSnips (using supertab)
 let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
 let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
@@ -653,24 +672,9 @@ set completeopt+=popup
 set completepopup=height:10,width:60,highlight:Pmenu,border:off
 " Apply YCM FixIt
 map <M-c> :YcmCompleter FixIt<CR>
-nnoremap <Leader>g :YcmCompleter GoToDefinitionElseDeclaration<CR>
-nnoremap <C-S-u> :YcmCompleter GoToReferences<CR>
+nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
+nnoremap <C-g> :YcmCompleter GoToReferences<CR>
 nnoremap <C-x> :YcmCompleter RefactorRename
-"Echodoc
-set noshowmode
-let g:echodoc#enable_at_startup = 1
-let g:echodoc#enable_force_overwrite = 1
-let g:echodoc#enable_at_startup = 1
-let g:echodoc#type = 'popup'
-autocmd FileType * call s:disable_echodoc()
-
-function s:disable_echodoc() abort
-  if &filetype ==# 'bib' || &filetype ==# 'tex'||&filetype ==# 'python'
-    call echodoc#disable()
-  else
-    call echodoc#enable()
-  endif
-endfunction
 "}}}
 
 "Vim startify {{{
@@ -704,14 +708,21 @@ let g:undotree_SetFocusWhenToggle = 1
 "}}}
 
 "Git {{{
-nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e zsh -ic ga',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e tig',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e tig blame -w '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gc :Git checkout %<CR>
-nnoremap <silent> <leader>gd :Gdiff<CR>
-nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e tig',0.9,0.6,'Todo')<CR>
+
+nnoremap <silent> <leader>gd :Gdiffsplit<CR>
+nnoremap <silent> <leader>gg :call Flt_term_win('wsl -e tig grep -w '.expand("<cword>"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e tig log -w '.expand("%"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <Leader>gm :call setbufvar(winbufnr(popup_atcursor(systemlist("cd " . shellescape(fnamemodify(resolve(expand('%:p')), ":h")) . " && git log --no-merges -n 1 -L " . shellescape(line("v") . "," . line(".") . ":" . resolve(expand("%:p")))), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 nnoremap <silent> <leader>gp :call Flt_term_win('lazygit',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gs :call Flt_term_win('wsl -e tig status',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gS :GFiles?<CR>
+nnoremap <silent> <leader>gt :call Flt_term_win('wsl -e tig show',0.9,0.6,'Todo')<CR>
 "Vim-signify  hunk jumping
+"
+nmap <leader>gh :SignifyHunkDiff<CR>
 nmap <leader>gh :SignifyHunkDiff<CR>
 nmap <leader>gj <plug>(signify-next-hunk)
 nmap <leader>gk <plug>(signify-prev-hunk)
@@ -737,12 +748,12 @@ let g:syntastic_warning_symbol =''
 let g:ale_linters = {
             \   'javascript': ['jshint', 'eslint'],
             \   'sh': ['shellcheck'],
-            \   'python': ['flake8','mypy'],
+            \   'python': ['flake8','pyright'],
             \   'r': ['lintr'],
             \   'bash': ['shellcheck'],
             \   'zsh': ['shellcheck']
             \}
-let g:ale_fixers = {'python': ['black', 'isort','autopep8'],'r': ['styler']}
+let g:ale_fixers = {'python': ['black', 'isort','autopep8'],'r': ['styler'], 'java': ['uncrustify', 'google_java_format']}
 let g:ale_python_autopep8_options = '--aggressive'
 let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 "}}}
@@ -807,6 +818,7 @@ endfunction
 let R_app = "radian"
 let R_cmd = "R"
 let R_hl_term = 1
+let g:rout_follow_colorscheme = 1
 let R_args = []  " if you had set any
 let R_bracketed_paste = 0
 let g:Rout_prompt_str = '» '
@@ -871,6 +883,7 @@ nmap <script> <Plug>(send-to-term) :<c-u>set opfunc=<SID>op<cr>g@
 xmap <script> <Plug>(send-to-term) :<c-u>call <SID>op(visualmode(), 1)<cr>
 nmap <F6> :call Flt_term_win('wsl',0.9,0.6,'Todo')<CR>
 nmap <C-F6> :term++close wsl <CR>
+vmap <C-F6> :!wsl -e
 tmap <S-Insert> <C-W>"+
 nmap yrr <Plug>(send-to-term-line)
 nmap yr <Plug>(send-to-term)
@@ -1043,6 +1056,7 @@ fun! CleanExtraSpaces()
     call setreg('/', old_query)
 endfun
 "Floating
+" ZSH command example 'wsl -e zsh -ic ga',0.9,0.6,'Todo'
 function! Flt_term_win(cmd, width, height, border_highlight) abort
     let width = float2nr(&columns * a:width)
     let height = float2nr(&lines * a:height)
@@ -1192,4 +1206,39 @@ function! QuitTerm(str)
     endif
 endfunction
 command! -range -bar SendToTerm call s:send_to_term(join(getline(<line1>, <line2>), "\n"))
+
+"Ranger vim
+function RangerExplorer(cmd, width, height, border_highlight) abort
+    let width = float2nr(&columns * a:width)
+    let height = float2nr(&lines * a:height)
+    let bufnr = term_start(a:cmd, {'hidden': 1, 'term_finish': 'close', 'cwd': getcwd(), 'exit_cb': function('OpenonExit')})
+
+    let winid = popup_create(bufnr, {
+            \ 'minwidth': width,
+            \ 'maxwidth': width,
+            \ 'minheight': height,
+            \ 'maxheight': height,
+            \ 'border': [],
+            \ 'borderchars': ['─', '│', '─', '│', '┌', '┐', '┘', '└'],
+            \ 'borderhighlight': [a:border_highlight],
+            \ 'padding': [0,1,0,1],
+            \ 'highlight': a:border_highlight
+            \ })
+
+    " Optionally set the 'Normal' color for the terminal buffer
+    " call setwinvar(winid, '&wincolor', 'Special')
+
+    return winid
+endfunction
+" Register that the job no longer exists
+function OpenonExit(job_id, stts)
+    if type(a:job_id) != type(0)
+        call popup_close(win_getid())
+        if filereadable('C:\\Users\\Tate\\temp\\vim_ranger_current_file')
+            exec 'edit ' . system('cat C:\\Users\\Tate\\temp\\vim_ranger_current_file | sed -E "s/mnt\/[a-zA-Z]\///g"')
+            call system('rm C:\\Users\\Tate\\temp\\vim_ranger_current_file')
+        endif
+    endif
+endfunction
+
 "}}}
