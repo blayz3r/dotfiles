@@ -36,6 +36,7 @@ Plug 'lilydjwg/colorizer'
 Plug 'osyo-manga/vim-precious', { 'for': 'markdown' }
 Plug 'Shougo/context_filetype.vim'
 Plug 'mhinz/vim-signify'
+Plug 'blayz3r/codi.vim'
 "Enhance motions
 Plug 'justinmk/vim-sneak'
 Plug 'tpope/vim-unimpaired'
@@ -628,33 +629,8 @@ nmap <silent> <Leader>9 <Plug>AirlineSelectTab9
 let g:airline#extensions#tabline#buffer_nr_show = 1
 "}}}
 
-"NERDCOMMENTER {{{
-" Add spaces after comment delimiters by default
-let g:NERDSpaceDelims = 1
-"
-"" Use compact syntax for prettified multi-line comments
-let g:NERDCompactSexyComs = 1
-"
-"" Align line-wise comment delimiters flush left instead of following code indentation
-let g:NERDDefaultAlign = 'left'
-"
-"" Set a language to use its alternate delimiters by default
-let g:NERDAltDelims_java = 1
-
-"" Add your own custom formats or override the defaults
-let g:NERDCustomDelimiters = { 'c': { 'left': '/**','right': '*/' } }
-"
-"" Allow commenting and inverting empty lines (useful when commenting a region)
-let g:NERDCommentEmptyLines = 1
-"
-"" Enable trimming of trailing whitespace when uncommenting
-let g:NERDTrimTrailingWhitespace = 1
-"}}}
-
 "Completion {{{
 "Youcompleteme fix
-let g:ycm_global_ycm_extra_conf = '~/.vim/bundle/youcompleteme/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
-let g:vimspector_enable_mappings = 'HUMAN'
 let g:ycm_auto_hover=''
 hi YCMInverse gui=underline
 " make YCM compatible with UltiSnips (using supertab)
@@ -838,18 +814,11 @@ let R_rconsole_width = 120
 let R_min_editor_width = 120
 let g:rmd_fenced_languages = ['r', 'python']
 let g:markdown_fenced_languages = ['r', 'python']
-" let g:ycm_filetype_blacklist = { 'r': 1 }
-let g:tagbar_type_r = {
-            \ 'ctagstype' : 'r',
-            \ 'kinds'     : [
-            \ 'f:Functions',
-            \ 'g:GlobalVariables',
-            \ 'v:FunctionVariables',
-            \ ]
-            \ }
+
 "}}}
 
 "Python Setup {{{
+
 autocmd FileType python,r map <buffer> <M-l> :ALEFix<CR>
 map <M-q> :bd __run__<CR>
 au BufRead,BufNewFile *.py setlocal textwidth=80
@@ -872,28 +841,27 @@ let cmdline_app           = {}
 let cmdline_app['python']   = 'ptpython'
 autocmd FileType python BracelessEnable +indent
 let g:braceless_block_key = 'b'
+let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
 
 "}}}
 
 "Terminal mappings {{{
+"Codi
+nmap \c :Codi!!<cr>
+let g:codi#rightalign = 0
+let g:codi#width =110
 "Contpy
 set termwintype=conpty
-nmap <script> <Plug>(send-to-term-line) :<c-u>SendToTerm<cr>
-nmap <script> <Plug>(send-to-term) :<c-u>set opfunc=<SID>op<cr>g@
-xmap <script> <Plug>(send-to-term) :<c-u>call <SID>op(visualmode(), 1)<cr>
 nmap <F6> :call Flt_term_win('wsl',0.9,0.6,'Todo')<CR>
 nmap <C-F6> :term++close wsl <CR>
 vmap <C-F6> :!wsl -e
 tmap <S-Insert> <C-W>"+
-nmap yrr <Plug>(send-to-term-line)
-nmap yr <Plug>(send-to-term)
-nmap yq :call QuitTerm('exit')<CR>
-xmap R <Plug>(send-to-term)
 "}}}
 
 "Java Setup {{{
 map <C-F4> :!javac -d "%:p:h:s?src?bin?" %<CR>
 map <F4> :!java -classpath "%:p:h:s?src?bin?" %:r<CR>
+
 "}}}
 
 "Matlab {{{
@@ -1157,55 +1125,6 @@ EOF
     call setbufvar(winbufnr(winid), '&syntax','rst')
     call setwinvar(winid, '&wincolor', 'Normal')
 endfunction
-"Terminal
-augroup send_to_term
-    autocmd!
-    autocmd TerminalOpen * if &buftype ==# 'terminal' |
-                \   let t:send_to_term = +expand('<abuf>') |
-                \ endif
-augroup END
-
-function! s:op(type, ...)
-    let [sel, rv, rt] = [&selection, @@, getregtype('"')]
-    let &selection = "inclusive"
-
-    if a:0 
-        silent exe "normal! `<" . a:type . "`>y"
-    elseif a:type == 'line'
-        silent exe "normal! '[V']y"
-    elseif a:type == 'block'
-        silent exe "normal! `[\<C-V>`]y"
-    else
-        silent exe "normal! `[v`]y"
-    endif
-
-    call s:send_to_term(@@)
-
-    let &selection = sel
-    call setreg('"', rv, rt)
-endfunction
-
-function! s:send_to_term(keys)
-    let bufnr = get(t:, 'send_to_term', 0)
-    if bufnr > 0 && bufexists(bufnr) && getbufvar(bufnr, '&buftype') ==# 'terminal'
-        let keys = substitute(a:keys, '\n$', '', '')
-        call term_sendkeys(bufnr, keys . "\<cr>")
-        echo "Sent " . len(keys) . " chars -> " . bufname(bufnr)
-    else
-        echom "Error: No terminal"
-    endif
-endfunction
-
-function! QuitTerm(str)
-    let bufnr = get(t:, 'send_to_term', 0)
-    if bufnr > 0 && bufexists(bufnr) && getbufvar(bufnr, '&buftype') ==# 'terminal'
-        call term_sendkeys(bufnr, a:str . "\<cr>")
-        echo "Sent " . len(a:str) . " chars -> " . bufname(bufnr)
-    else
-        echom "Error: No terminal"
-    endif
-endfunction
-command! -range -bar SendToTerm call s:send_to_term(join(getline(<line1>, <line2>), "\n"))
 
 "Ranger vim
 function RangerExplorer(cmd, width, height, border_highlight) abort
