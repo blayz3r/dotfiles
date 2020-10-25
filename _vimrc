@@ -80,7 +80,7 @@ call plug#end()            " required
 set nobackup
 set nowb
 set noswapfile
-
+set updatetime=100
 set number                     " Show current line number
 set relativenumber             " Show relative line numbers
 
@@ -814,7 +814,6 @@ let R_rconsole_width = 120
 let R_min_editor_width = 120
 let g:rmd_fenced_languages = ['r', 'python']
 let g:markdown_fenced_languages = ['r', 'python']
-
 "}}}
 
 "Python Setup {{{
@@ -833,16 +832,40 @@ let g:pymode_rope_extract_variable_bind = "<Leader>jv"
 let cmdline_map_send = "<LocalLeader>l"
 let cmdline_tmp_dir     = 'C:\\Users\\Tate\\temp'
 let g:pymode_doc = 0
+let g:pymode_rope_regenerate_on_write = 0
 autocmd FileType python nnoremap <buffer> <Leader>pd  :call Flt_term_win('python -m pydoc '.expand("<cword>"), 0.9, 0.6, 'Todo')<CR>
 autocmd FileType python nnoremap <buffer> K :call PyDocVim()<CR>
 nmap <C-F5> :term++close python %<CR>
 let g:pymode_run_bind = '<F5>'
 let cmdline_app           = {}
-let cmdline_app['python']   = 'ptpython'
+let cmdline_app['python']   = 'wsl -e ptpython'
 autocmd FileType python BracelessEnable +indent
 let g:braceless_block_key = 'b'
 let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
+"}}}
 
+"Python Debugger {{{
+" Actions on Livepy
+augroup LIVEPY
+  au!
+  " Local options
+  au FileType livepy setlocal
+        \ buftype=nofile bufhidden=hide nobuflisted
+        \ nomodifiable nomodified
+        \ nonu nornu nolist nomodeline nowrap
+        \ statusline=\  nocursorline nocursorcolumn colorcolumn=
+        \ foldcolumn=0 nofoldenable winfixwidth
+        \ scrollbind
+        \ | noremap <buffer> <silent> q <esc>:q<cr>
+        \ | silent! setlocal cursorbind
+        \ | silent! setlocal signcolumn=no
+
+augroup END
+
+" Main function
+command! -nargs=? Livepy call Livepy_toggle(&filetype)
+command! -bar LivepyUpdate call Livepy_do_update()
+nmap \d :Livepy<cr>
 "}}}
 
 "Terminal mappings {{{
@@ -1159,5 +1182,231 @@ function OpenonExit(job_id, stts)
         endif
     endif
 endfunction
+
+"Livepy helpers
+function! Livepy_toggle(filetype)
+  if exists('s:Save_Livepy_bufnr')
+    return Livepy_kill()
+  else
+    return Livepy_spawn(a:filetype)
+  endif
+endfunction
+
+function! Livepy_spawn(filetype)
+
+    let s:Pyasync_jobs = {} 
+    let s:Pyasync_data = {}
+    
+
+    if a:filetype !=? "python"
+        return Err('File type is not python')
+    endif
+    call Livepy_kill()
+
+    " Save bufnr
+    let bufnr = bufnr('%')
+    let s:width = winwidth(bufwinnr('%'))/2
+
+    " Save settings to restore later
+    let winnr = winnr()
+    let s:restore = ''
+    for opt in ['scrollbind', 'cursorbind', 'wrap', 'foldenable']
+        if exists('&'.opt)
+            let val = getwinvar(winnr, '&'.opt)
+            let s:restore .= ' | call setwinvar('.winnr.', "&'.opt.'", '.val.')'
+        endif
+    endfor
+    
+    " Set target buf options
+    setlocal scrollbind nowrap nofoldenable
+    silent! setlocal cursorbind
+   
+    exe 'augroup LIVEPY_TARGET_'.bufnr
+    au!
+    " === g:codi#update() ===
+    au TextChanged,TextChangedI  <buffer> call Livepy_do_update()
+    augroup END
+
+    exe 'keepjumps keepalt rightbelow '.s:width.' vnew'
+    setlocal filetype=livepy
+    exe 'setlocal syntax='.a:filetype
+    
+    " Return to target split and save codi bufnr
+    keepjumps keepalt wincmd p
+    let s:Livepy_target_bufnr = bufnr
+    let s:Save_Livepy_bufnr = bufnr('$') 
+    silent call Livepy_do_update()
+endfunction
+
+function! Livepy_kill()
+  " If we already have a Livepy instance for the buffer, kill it
+  if exists('s:Save_Livepy_bufnr')
+    let Livepy_bufnr = s:Save_Livepy_bufnr
+    " Clear autocommands
+    exe 'augroup LIVEPY_TARGET_'.bufnr('%')
+      au!
+    augroup END
+    exe s:restore
+    unlet s:Save_Livepy_bufnr
+    exe 'keepjumps keepalt bdel! '.Livepy_bufnr
+  endif
+endfunction
+
+function! Err(msg)
+  echohl ErrorMsg | echom a:msg | echohl None
+endfunction
+
+
+" Update the Livepy buf
+function! Livepy_do_update()
+    if !exists('s:Save_Livepy_bufnr') | return | endif
+
+    let bufnr = bufnr('%')
+    let input = join(getline('^', '$'), "\n")
+    let magic = "\n\<cr>\<c-d>\<c-d>\<cr>" " to get out of REPL
+    let input = input.magic
+
+    let pycmd = ['python', '-m', 'space_tracer', '-l', '-']  
+    let pywin32_bin = 'C:\\Users\\Tate\\temp\\pycmd'
+    let pytmp_bin = '/mnt/c/Users/Tate/temp/pycmd'
+    call writefile([Shellescape_list(pycmd)], pywin32_bin)
+    call setfperm(pytmp_bin, 'rwx------')
+    let args = ['wsl', 'script', '-qfec', pytmp_bin, '/dev/null']
+
+    let job = job_start(args, { 
+                \ 'callback': 'Pyvim_callback'
+                \})
+    let ch = job_getchannel(job)
+    let id = substitute(ch, '^channel \(\d\+\) \(open\|closed\)$', '\1', '')
+
+    " Kill previously running job if necessary
+    call Stop_job_for_buf(bufnr)
+
+    " Save job-related information
+    let s:Pyasync_jobs[bufnr] = job
+    let s:Pyasync_data[id] = {
+                \ 'bufnr': bufnr,
+                \ 'lines': [],
+                \ 'expected': line('$'),
+                \ 'received': 0,
+                \ }
+    call ch_sendraw(ch, input)
+endfunction
+
+function! Livepy_handle_done(data, output)
+    " Save for later
+  let ret_bufnr = bufnr('%')
+  let ret_mode = mode()
+  let ret_line = line('.')
+  let ret_col = col('.')
+
+  " Go to target buf
+  exe 'keepjumps keepalt buf! '.a:data['bufnr']
+  let s:updating = 1
+  let Livepy_bufnr = s:Save_Livepy_bufnr 
+  let Livepy_winwidth = winwidth(bufwinnr(Livepy_bufnr))
+  let num_lines = line('$')
+  " So we can jump back later
+  let top = line('w0') + &scrolloff
+  let line = line('.')
+  let col = col('.')
+
+  " So we can syncbind later
+   silent! exe "keepjumps normal! \<esc>gg"
+  " Go to Livepy buf
+  exe 'keepjumps keepalt buf! '.Livepy_bufnr
+  setlocal modifiable
+
+  let lines = a:output
+
+  " Read the result into the Livepy buf
+  1,$d _ | 0put =lines
+  exe 'setlocal textwidth='.Livepy_winwidth
+
+  " Syncbind Livepy buf
+  keepjumps normal! G"_ddgg
+  syncbind
+  setlocal nomodifiable
+  "
+  " " Restore target buf position
+  exe 'keepjumps keepalt buf! '.s:Livepy_target_bufnr
+  exe 'keepjumps '.top
+  keepjumps normal! zt
+  keepjumps call cursor(line, col)
+  let s:updating = 0
+  "
+  " Go back to original buf
+  exe 'keepjumps keepalt buf! '.ret_bufnr
+
+  " Restore mode and position
+  if ret_mode =~? '[vV]'
+    keepjumps normal! gv
+  elseif ret_mode =~? '[sS]'
+    exe "keepjumps normal! gv\<c-g>"
+  endif
+  keepjumps call cursor(ret_line, ret_col)
+endfunction
+
+" Callback to handle output (vim)
+function! Pyvim_callback(ch, msg)
+  try
+    let id = substitute(a:ch, '^channel \(\d\+\) \(open\|closed\)$', '\1', '')  
+    call Livepy_handle_data(s:Pyasync_data[id], a:msg)
+  catch /E716/
+    " No-op if data isn't ready
+  endtry
+endfunction
+
+" Shell escape on a list to make one string
+function! Shellescape_list(l)
+  let result = []
+  for arg in a:l
+    call add(result, shellescape(arg, 1))
+  endfor
+  return join(result, ' ')
+endfunction
+
+function! Stop_job_for_buf(buf, ...)
+  try
+    let job = s:Pyasync_jobs[a:buf]
+    unlet s:Pyasync_jobs[a:buf]
+  catch /E716/
+    return
+  endtry
+
+    if a:0
+      call job_stop(job, a:1)
+    else
+      call job_stop(job)
+  endif
+
+    " Implicitly clears from process table.
+    call job_status(job)
+endfunction
+
+function! Livepy_handle_data(data, msg)
+  " Bail early if we're done
+  if a:data['received'] > a:data['expected'] | return | endif
+
+  " Preprocess early so we can properly detect prompts
+  let out = substitute(substitute(substitute(a:msg,
+        \ "\<cr>".'\|'."\<c-h>", '', 'g'),
+        \ '\(^\|\n\)\(\^D\)\+', '\1', 'g'),
+        \ "\<esc>".'\[[0-9;]*\a', '', 'g')
+
+  for line in split(out, "\n")
+      " keep output only
+      if line =~ '^\(\s\+\d\+\|\d\+\|\d\))'
+          call add(a:data['lines'], substitute(line,'^\(\s\+\d\+\|\d\+\)).\{-}|', '', 'g')) 
+          let a:data['received'] += 1
+          if a:data['received'] == a:data['expected']
+              call Stop_job_for_buf(a:data['bufnr'])
+              silent call Livepy_handle_done(
+                          \ a:data['bufnr'], join(a:data['lines'], "\n"))
+          endif
+      endif
+  endfor
+endfunction
+
 
 "}}}
