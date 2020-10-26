@@ -7,7 +7,7 @@
 " ██╗╚████╔╝  ██║ ██║ ╚═╝ ██║ ██║  ██║ ╚██████╗
 " ╚═╝ ╚═══╝   ╚═╝ ╚═╝     ╚═╝ ╚═╝  ╚═╝  ╚═════╝
 "
-" Sections:
+" Sections
 "Vim-Plug Plugin Manager  {{{
 " set the run path
 call plug#begin('~/.vim/bundle')
@@ -208,7 +208,6 @@ autocmd ColorScheme * hi SneakLabel gui=reverse guifg=fg guibg=bg
 autocmd ColorScheme * hi! link Sneak Normal
 "colorscheme Tomorrow-Night
 " colorscheme nord
-" colorscheme quantum
 " colorscheme one
 colorscheme onedark
 " colorscheme gruvbox
@@ -1396,9 +1395,10 @@ function! Livepy_handle_data(data, msg)
 
   for line in split(out, "\n")
       " keep output only
-      if line =~ '^\(\s\+\d\+\|\d\+\|\d\))'
+      if line =~ '^\(\s\+\d\+\|\d\+\))'
           call add(a:data['lines'], substitute(line,'^\(\s\+\d\+\|\d\+\)).\{-}|', '', 'g')) 
           let a:data['received'] += 1
+
           if a:data['received'] == a:data['expected']
               call Stop_job_for_buf(a:data['bufnr'])
               silent call Livepy_handle_done(
