@@ -49,7 +49,7 @@ Plug 'junegunn/vim-after-object'
 "Python
 Plug 'ehamberg/vim-cute-python'
 Plug 'tweekmonster/braceless.vim'
-Plug 'python-mode/python-mode', { 'for': 'python', 'branch': 'develop' }
+Plug 'vim-python/python-syntax'
 "Completion
 Plug 'honza/vim-snippets'
 Plug 'scrooloose/snipmate-snippets'
@@ -406,6 +406,8 @@ let g:AutoPairsShortcutJump ='<M-p>'
 set infercase
 set hlsearch
 set incsearch
+highlight QuickFixLine guibg=#202020
+highlight QuickFixLine guifg='NONE'
 " highlight Search guibg=#3D5B8C guifg='NONE'
 " highlight IncSearch guibg=#3D5B8C guifg='NONE'
 highlight Search gui=NONE guibg=Purple4 guifg=WHITE
@@ -491,22 +493,27 @@ nnoremap gof :!start explorer /select,%:p<CR>
 "Fuzzy File Search Setup {{{
 " [Buffers] Jump to the existing window if possible
 let g:fzf_buffers_jump = 1
+    " Customize fzf colors to match your color scheme
+    " - fzf#wrap translates this to a set of `--color` options
+" Customize fzf colors to match your color scheme
+" - fzf#wrap translates this to a set of `--color` options
 " Customize fzf colors to match your color scheme
 let g:fzf_colors =
-            \ { 'fg':      ['fg', 'Normal'],
-            \ 'bg':      ['bg', 'Normal'],
-            \ 'hl':      ['fg', 'Comment'],
-            \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-            \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-            \ 'hl+':     ['fg', 'Statement'],
-            \ 'info':    ['fg', 'PreProc'],
-            \ 'border':  ['fg', 'Ignore'],
-            \ 'prompt':  ['fg', 'Conditional'],
-            \ 'pointer': ['fg', 'Exception'],
-            \ 'marker':  ['fg', 'Keyword'],
-            \ 'spinner': ['fg', 'Label'],
-            \ 'header':  ['fg', 'Comment'] }
-" [[B]Commits] Customize the options used by 'git log':
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
+
+"See for more info: https://github.com/junegunn/fzf/wiki/Color-schemes
+"[[B]Commits] Customize the options used by 'git log':
 " let g:fzf_commits_log_options = '--graph --color=always --format="%C(auto)%h%d %s %C(black)%C(bold)%cr"'
 " [Tags] Command to generate tags file
 let g:fzf_tags_command = 'ctags -R'
@@ -514,16 +521,9 @@ let g:fzf_tags_command = 'ctags -R'
 " [Commands] --expect expression for directly executing the command
 let g:fzf_commands_expect = 'alt-enter,ctrl-x'
 
-" Mapping selecting mappings
-nmap <leader><tab> <plug>(fzf-maps-n)
-xmap <leader><tab> <plug>(fzf-maps-x)
-imap <c-x><c-f> <plug>(fzf-complete-path)
-omap <leader><tab> <plug>(fzf-maps-o)
-
 " Make FZF mappings
 nnoremap <Leader>t :BTags<CR>
 nnoremap <Leader>k :Rg! 
-nnoremap <Leader>gf :GGrep<CR>
 nnoremap <Leader>h :MRU<CR>
 nnoremap <Leader>c :History:<CR>
 nnoremap <silent> <expr> <Leader><Leader> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":Files\<cr>"
@@ -539,36 +539,26 @@ nnoremap <silent> <expr> <Leader><Leader> (expand('%') =~ 'NERD_tree' ? "\<c-w>\
 " Similarly, we can apply it to fzf#vim#grep. To use ripgrep instead of ag:
 command! -bang -nargs=* Rg
             \ call fzf#vim#grep(
-            \   'rg --column --line-number --color=always '.<q-args>, 1,
-            \   <bang>0 ? fzf#vim#with_preview('up:60%')
-            \           : fzf#vim#with_preview('right:50%'),
+            \ 'rg --column --color=always --line-number --colors "match:fg:white" --colors "match:bg:red" --colors "column:fg:57,143,229" --colors "path:fg:203,133,204" --colors "line:fg:128,128,128" --colors "line:style:bold" '.<q-args>, 1, 
+            \   fzf#vim#with_preview({'options': ['--color', 'hl:68,hl+:110', '--preview-window', 'sharp']}),
             \   <bang>0)
 
-command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview', 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {}']})
+command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview-window=sharp']})
 
 " Likewise, Files command with preview window
 command! -bang -nargs=? -complete=dir Files
-    \ call fzf#vim#files(<q-args>, {'options': ['--preview', 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {}']}, <bang>0)
-
-" GGrep command to use git grep with fzf
-command! -bang -nargs=* GGrep
-  \ call fzf#vim#grep(
-  \   'git grep --line-number -- '.shellescape(<q-args>), 0,
-  \   fzf#vim#with_preview({'dir': systemlist('git rev-parse --show-toplevel')[0]}), <bang>0)
+    \ call fzf#vim#files(<q-args>, {'options': ['--preview-window=sharp']}, <bang>0)
 
 nnoremap <silent> gv :Rg <C-R><C-W><CR>
 "FZF preview
-let g:fzf_preview_window = 'right:60%'
 " CTRL-A to select all and build quickfix list
 let $BAT_THEME = 'TwoDark'
-let $FZF_DEFAULT_OPTS = '--bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up'
+let $FZF_DEFAULT_OPTS = "--bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up --preview 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {} '"
 "Floating window
 let g:fzf_layout = {
     \ 'window': {
     \     'width': 0.9,
     \     'height': 0.6,
-    \     'xoffset': 0.5,
-    \     'yoffset': 0.5,
     \     'highlight': 'Todo',
     \     'border': 'sharp',
     \ }}
@@ -576,6 +566,11 @@ let g:fzf_layout = {
 "sudo -H pip3 install ranger-fm
 nnoremap <silent> - :call RangerExplorer('wsl -e zsh -ic rangervim',0.9,0.6,'Todo')<CR>
 " nnoremap <silent> - :call Flt_term_win('bash ranger',0.9,0.6,'Todo')<CR>
+let g:fzf_action = {
+  \ 'ctrl-q': '!start',
+  \ 'ctrl-t': 'tab split',
+  \ 'ctrl-x': 'split',
+  \ 'ctrl-v': 'vsplit' }
 
 "}}}
 
@@ -649,7 +644,7 @@ set completepopup=height:10,width:60,highlight:Pmenu,border:off
 map <M-c> :YcmCompleter FixIt<CR>
 nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
-nnoremap <C-x> :YcmCompleter RefactorRename
+nnoremap <C-x> :YcmCompleter RefactorRename 
 "}}}
 
 "Vim startify {{{
@@ -698,7 +693,6 @@ nnoremap <silent> <leader>gt :call Flt_term_win('wsl -e tig show',0.9,0.6,'Todo'
 "Vim-signify  hunk jumping
 "
 nmap <leader>gh :SignifyHunkDiff<CR>
-nmap <leader>gh :SignifyHunkDiff<CR>
 nmap <leader>gj <plug>(signify-next-hunk)
 nmap <leader>gk <plug>(signify-prev-hunk)
 "Vim-signify hunk text object
@@ -717,6 +711,7 @@ let b:ale_fix_on_save = 1
 let g:ale_sign_error = '✗'
 let g:ale_sign_warning = ''
 let g:ale_sign_info = '💡'
+let g:ale_set_balloons = 0
 " YCM signs
 let g:syntastic_error_symbol = '✗'
 let g:syntastic_warning_symbol =''
@@ -816,28 +811,26 @@ let g:markdown_fenced_languages = ['r', 'python']
 "}}}
 
 "Python Setup {{{
-
+let g:python_highlight_all = 1
 autocmd FileType python,r map <buffer> <M-l> :ALEFix<CR>
-map <M-q> :bd __run__<CR>
 au BufRead,BufNewFile *.py setlocal textwidth=80
-"Pymode
-let g:pymode_rope_completion = 0
-let g:pymode_rope = 1
-let g:pymode_lint = 0
-let g:pymode_python = 'python3'
-let g:pymode_rope_rename_bind = "<Leader>jr"
-let g:pymode_rope_extract_method_bind = "<Leader>jm"
-let g:pymode_rope_extract_variable_bind = "<Leader>jv" 
 let cmdline_map_send = "<LocalLeader>l"
 let cmdline_tmp_dir     = 'C:\\Users\\Tate\\temp'
-let g:pymode_doc = 0
-let g:pymode_rope_regenerate_on_write = 0
-autocmd FileType python nnoremap <buffer> <Leader>pd  :call Flt_term_win('python -m pydoc '.expand("<cword>"), 0.9, 0.6, 'Todo')<CR>
+let g:pymode_quickfix_minheight = 3
+let g:pymode_quickfix_maxheight = 6
+let g:pymode_preview_position = "botright"
+let g:pymode_preview_height = &previewheight  
+map <M-q> :bd __run__<CR>
+
+
+command! -nargs=0 -range=% PyRun call ExecutePython(<f-line1>, <f-line2>)
+autocmd FileType python nnoremap <silent> <buffer> <F5> :PyRun<CR>
+autocmd FileType python vnoremap <silent> <buffer> <F5> :PyRun<CR>
+
 autocmd FileType python nnoremap <buffer> K :call PyDocVim()<CR>
-nmap <C-F5> :term++close python %<CR>
-let g:pymode_run_bind = '<F5>'
+
 let cmdline_app           = {}
-let cmdline_app['python']   = 'wsl -e ptpython'
+let cmdline_app['python']   = 'wsl ptpython'
 autocmd FileType python BracelessEnable +indent
 let g:braceless_block_key = 'b'
 let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
@@ -1081,12 +1074,11 @@ col= vim.current.window.cursor[1]
 
 script = jedi.Script(
     source=None,
-    path=curfile,
-    line=row,
-    column=col)
+    path=curfile)
 
 try:
-    definitions = script.goto_definitions()
+    definitions = script.help(line=row,
+    column=col)
 except Exception:
     # print to stdout, will be in :messages
     definitions = []
@@ -1101,7 +1093,7 @@ docs = []
 for d in definitions:
     doc = d.docstring()
     if doc:
-        title = "Docstring for %s" % d.desc_with_module
+        title = "Docstring for %s" % d.full_name
         underline = "=" * len(title)
         docs.append("%s\n%s\n%s" % (title, underline, doc))
     else:
@@ -1408,5 +1400,209 @@ function! Livepy_handle_data(data, msg)
   endfor
 endfunction
 
+" https://github.com/python-mode/python-mode/blob/bb746d0d0cba9adedbac856429e37a0dbfc599c6/autoload/pymode/run.vim
+function! ExecutePython(line1, line2)
+    let s:efm  = '%+GTraceback%.%#,'
 
-"}}}
+    " The error message itself starts with a line with 'File' in it. There
+    " are a couple of variations, and we need to process a line beginning
+    " with whitespace followed by File, the filename in "", a line number,
+    " and optional further text. %E here indicates the start of a multi-line
+    " error message. The %\C at the end means that a case-sensitive search is
+    " required.
+    let s:efm .= '%E  File "%f"\, line %l\,%m%\C,'
+    let s:efm .= '%E  File "%f"\, line %l%\C,'
+
+    " The possible continutation lines are idenitifed to Vim by %C. We deal
+    " with these in order of most to least specific to ensure a proper
+    " match. A pointer (^) identifies the column in which the error occurs
+    " (but will not be entirely accurate due to indention of Python code).
+    let s:efm .= '%C%p^,'
+
+    " Any text, indented by more than two spaces contain useful information.
+    " We want this to appear in the quickfix window, hence %+.
+    let s:efm .= '%+C    %.%#,'
+    let s:efm .= '%+C  %.%#,'
+
+    " The last line (%Z) does not begin with any whitespace. We use a zero
+    " width lookahead (\&) to check this. The line contains the error
+    " message itself (%m)
+    let s:efm .= '%Z%\S%\&%m,'
+
+    " We can ignore any other lines (%-G)
+    let s:efm .= '%-G%.%#'
+
+python3 << EOF
+""" Code runnning support. """
+import json
+import sys
+from io import StringIO
+from re import compile as re
+
+encoding = re(r"#.*coding[:=]\s*([-\w.]+)")
+
+
+def run_code():
+    """ Run python code in current buffer.
+    :returns: None
+    """
+    errors, err = [], ""
+    line1, line2 = vim.eval("a:line1"), vim.eval("a:line2")
+    lines = __prepare_lines(line1, line2)
+    if encoding.match(lines[0]):
+        lines.pop(0)
+        if encoding.match(lines[0]):
+            lines.pop(0)
+    elif encoding.match(lines[1]):
+        lines.pop(1)
+
+    context = dict(
+        __name__="__main__",
+        __file__=vim.eval('expand("%:p")'),
+        input='',
+        raw_input='')
+
+    sys.stdout, stdout_ = StringIO(), sys.stdout
+    sys.stderr, stderr_ = StringIO(), sys.stderr
+
+    try:
+        code = compile("\n".join(lines) + "\n", vim.current.buffer.name, "exec")
+        sys.path.insert(0, vim.eval('getcwd()'))
+        exec(code, context)  # noqa
+        sys.path.pop(0)
+
+    except SystemExit as e:
+        if e.code:
+            # A non-false code indicates abnormal termination.
+            # A false code will be treated as a
+            # successful run, and the error will be hidden from Vim
+            vim.command('call Pyerror("%s")' % str("Script exited with code %s" % e.code))
+            return vim.command('return')
+
+    except Exception:
+        import traceback
+
+        err = traceback.format_exc()
+
+    else:
+        err = sys.stderr.getvalue()
+
+    output = sys.stdout.getvalue()
+    sys.stdout, sys.stderr = stdout_, stderr_
+
+    errors += [er for er in err.splitlines() if er and "<string>" not in er]
+    vim.command('let %s = %s' % ("l:traceback", json.dumps(errors[1:])))
+    vim.command('let %s = %s' % ("l:output", json.dumps([s for s in output.splitlines()])))
+
+
+def __prepare_lines(line1, line2):
+
+    lines = [l.rstrip() for l in vim.current.buffer[int(line1) - 1: int(line2)]]
+
+    indent = 0
+    for line in lines:
+        if line:
+            indent = len(line) - len(line.lstrip())
+            break
+    if len(lines) == 1:
+        lines.append("")
+    return [l[indent:] for l in lines]
+EOF
+    let l:output = []
+    let l:lines = []
+    let l:traceback = []
+    call setqflist([])
+
+    call Wide_message("Code running ...")
+
+    try
+        python3 run_code()
+
+        if len(l:output)
+            call Tempbuffer_open('__run__')
+            call append(line('$'), l:output)
+            normal dd
+            wincmd p
+        else
+            call Wide_message("No output.")
+        endif
+
+        cexpr ""
+        let l:_efm = &efm
+        let &efm = s:efm
+        cgetexpr(l:traceback)
+
+        " If a range is run (starting other than at line 1), fix the reported
+        " error line numbers for the current buffer
+        if a:line1 > 1
+            let qflist = getqflist()
+            for i in qflist
+                if i.bufnr == bufnr("")
+                    let i.lnum = i.lnum - 1 + a:line1
+                endif
+            endfor
+            call setqflist(qflist)
+        endif
+
+        call Quickfix_open(0, g:pymode_quickfix_maxheight, g:pymode_quickfix_maxheight, 0)
+
+        let &efm = l:_efm
+
+    catch /E234/
+
+        echohl Error | echo "Run-time error." | echohl none
+
+    endtry
+endfunction
+
+" DESC: Show wide message
+fun! Wide_message(msg) "{{{
+    let x=&ruler | let y=&showcmd
+    set noruler noshowcmd
+    redraw
+    echohl Debug | echo strpart("[Pymode] " . a:msg, 0, &columns-1) | echohl none
+    let &ruler=x | let &showcmd=y
+endfunction
+
+
+" DESC: Open temp buffer.
+fun! Tempbuffer_open(name) "{{{
+    pclose
+    exe g:pymode_preview_position . " " . g:pymode_preview_height . "new " . a:name
+    setlocal buftype=nofile bufhidden=delete noswapfile nowrap previewwindow
+    redraw
+endfunction
+
+" DESC: Open quickfix window
+fun! Quickfix_open(onlyRecognized, maxHeight, minHeight, jumpError) "{{{
+    let numErrors = len(filter(getqflist(), '1'))
+    let numOthers = len(getqflist()) - numErrors
+    if numErrors > 0 || (!a:onlyRecognized && numOthers > 0)
+        let num = winnr()
+        botright copen
+        exe max([min([line("$"), a:maxHeight]), a:minHeight]) . "wincmd _"
+        if a:jumpError
+            cc
+        elseif num != winnr()
+            wincmd p
+        endif
+    else
+        cclose
+    endif
+    redraw
+    if numOthers > 0
+        call Wide_message(printf('Quickfix: %d(+%d)', numErrors, numOthers))
+    elseif numErrors > 0
+        call Wide_message(printf('Quickfix: %d', numErrors))
+    endif
+endfunction
+
+" DESC: Show error
+fun! Pyerror(msg) "{{{
+    execute "normal \<Esc>"
+    echohl ErrorMsg
+    echomsg "[Pymode]: error: " . a:msg
+    echohl None
+endfunction
+
+ "}}}
