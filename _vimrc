@@ -481,6 +481,7 @@ vmap     <M-k> <Plug>CtrlSFVwordExec<CR>
 nnoremap <M-o> :CtrlSFOpen<CR>
 nnoremap <M-t> :CtrlSFToggle<CR>
 inoremap <M-t> <Esc>:CtrlSFToggle<CR>
+" let g:ctrlsf_auto_preview = 0
 let g:ctrlsf_auto_focus = {
             \ 'at': 'start',
             \ }
@@ -645,6 +646,7 @@ map <M-c> :YcmCompleter FixIt<CR>
 nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
 nnoremap <C-x> :YcmCompleter RefactorRename 
+vnoremap <C-x> :ALECodeAction<CR>
 "}}}
 
 "Vim startify {{{
@@ -718,7 +720,7 @@ let g:syntastic_warning_symbol =''
 let g:ale_linters = {
             \   'javascript': ['jshint', 'eslint'],
             \   'sh': ['shellcheck'],
-            \   'python': ['flake8','pyright'],
+            \   'python': ['flake8','pyright','jedils'],
             \   'r': ['lintr'],
             \   'bash': ['shellcheck'],
             \   'zsh': ['shellcheck']
@@ -821,7 +823,8 @@ let g:pymode_quickfix_maxheight = 6
 let g:pymode_preview_position = "botright"
 let g:pymode_preview_height = &previewheight  
 map <M-q> :bd __run__<CR>
-
+"csv data
+nmap <F4> :call Flt_term_win('wsl visidata',0.9,0.6,'Todo')<CR>
 
 command! -nargs=0 -range=% PyRun call ExecutePython(<f-line1>, <f-line2>)
 autocmd FileType python nnoremap <silent> <buffer> <F5> :PyRun<CR>
@@ -834,6 +837,31 @@ let cmdline_app['python']   = 'wsl ptpython'
 autocmd FileType python BracelessEnable +indent
 let g:braceless_block_key = 'b'
 let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
+"Python Motions
+autocmd FileType python nnoremap <buffer> ]C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
+autocmd FileType python nnoremap <buffer> [C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', 'b')<CR>
+autocmd FileType python nnoremap <buffer> ]M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
+autocmd FileType python nnoremap <buffer> [M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
+
+autocmd FileType python onoremap <buffer> ]C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
+autocmd FileType python onoremap <buffer> [C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', 'b')<CR>
+autocmd FileType python onoremap <buffer> ]M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
+autocmd FileType python onoremap <buffer> [M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
+
+autocmd FileType python vnoremap <buffer> ]M  :call Pymode_vmove('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
+autocmd FileType python vnoremap <buffer> [M  :call Pymode_vmove('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
+
+autocmd FileType python onoremap <buffer> C  :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> aC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> iC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 1)<CR>
+autocmd FileType python vnoremap <buffer> aC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
+autocmd FileType python vnoremap <buffer> iC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 1)<CR>
+
+autocmd FileType python onoremap <buffer> M   :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> aM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> iM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 1)<CR>
+autocmd FileType python vnoremap <buffer> aM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
+autocmd FileType python vnoremap <buffer> iM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 1)<CR>
 "}}}
 
 "Python Debugger {{{
@@ -874,8 +902,8 @@ tmap <S-Insert> <C-W>"+
 "}}}
 
 "Java Setup {{{
-map <C-F4> :!javac -d "%:p:h:s?src?bin?" %<CR>
-map <F4> :!java -classpath "%:p:h:s?src?bin?" %:r<CR>
+" map <C-F4> :!javac -d "%:p:h:s?src?bin?" %<CR>
+" map <F4> :!java -classpath "%:p:h:s?src?bin?" %:r<CR>
 
 "}}}
 
@@ -1073,7 +1101,7 @@ row = vim.current.window.cursor[0]
 col= vim.current.window.cursor[1]
 
 script = jedi.Script(
-    source=None,
+    code=None,
     path=curfile)
 
 try:
@@ -1399,6 +1427,112 @@ function! Livepy_handle_data(data, msg)
       endif
   endfor
 endfunction
+
+
+"https://github.com/python-mode/python-mode/blob/59efb15bc90fbadc5e5c3cd1bcd7b3be54dcbacd/autoload/pymode/motion.vim
+
+"Python-mode motion functions {{{
+
+
+fun! Pymode_move(pattern, flags, ...) "{{{
+    let cnt = v:count1 - 1
+    let [line, column] = searchpos(a:pattern, a:flags . 'sW')
+    let indent = indent(line)
+    while cnt && line
+        let [line, column] = searchpos(a:pattern, a:flags . 'W')
+        if indent(line) == indent
+            let cnt = cnt - 1
+        endif
+    endwhile
+    return [line, column]
+endfunction "}}}
+
+fun! Pymode_vmove(pattern, flags) range "{{{
+    call cursor(a:lastline, 0)
+    let end = Pymode_move(a:pattern, a:flags)
+    call cursor(a:firstline, 0)
+    normal! v
+    call cursor(end)
+endfunction "}}}
+
+fun! Pymode_pos_le(pos1, pos2) "{{{
+    return ((a:pos1[0] < a:pos2[0]) || (a:pos1[0] == a:pos2[0] && a:pos1[1] <= a:pos2[1]))
+endfunction "}}}
+
+fun! Pymode_select(first_pattern, second_pattern, inner) "{{{
+    let cnt = v:count1 - 1
+    let orig = getpos('.')[1:2]
+    let posns = s:BlockStart(orig[0], a:first_pattern, a:second_pattern)
+    if getline(posns[0]) !~ a:first_pattern && getline(posns[0]) !~ a:second_pattern
+        return 0
+    endif
+    let snum = posns[0]
+    let enum = s:BlockEnd(posns[1], indent(posns[1]))
+    while cnt
+        let lnum = search(a:second_pattern, 'nW')
+        if lnum
+            let enum = s:BlockEnd(lnum, indent(lnum))
+            call cursor(enum, 1)
+        endif
+        let cnt = cnt - 1
+    endwhile
+    if Pymode_pos_le([snum, 0], orig) && Pymode_pos_le(orig, [enum+1, 0])
+        if a:inner
+            let snum = posns[1] + 1
+        endif
+
+        call cursor(snum, 1)
+        normal! V
+        call cursor(enum, len(getline(enum)))
+    endif
+endfunction "}}}
+
+fun! Pymode_select_c(pattern, inner) "{{{
+    call Pymode_select(a:pattern, a:pattern, a:inner)
+endfunction "}}}
+
+fun! s:BlockStart(lnum, first_pattern, second_pattern) "{{{
+    let lnum = a:lnum + 1
+    let indent = 100
+    while lnum
+        let lnum = prevnonblank(lnum - 1)
+        let test = indent(lnum)
+        let line = getline(lnum)
+        " Skip comments, deeper or equal lines
+        if line =~ '^\s*#' || test >= indent
+            continue
+        endif
+        let indent = indent(lnum)
+
+        " Indent is strictly less at this point: check for def/class/@
+        if line =~ a:first_pattern || line =~ a:second_pattern
+            while getline(lnum-1) =~ a:first_pattern
+                let lnum = lnum - 1
+	    endwhile
+	    let first_pos = lnum
+	    while getline(lnum) !~ a:second_pattern
+                let lnum = lnum + 1
+            endwhile
+	    let second_pos = lnum
+            return [first_pos, second_pos]
+        endif
+    endwhile
+    return [0, 0]
+endfunction "}}}
+
+fun! s:BlockEnd(lnum, ...) "{{{
+    let indent = a:0 ? a:1 : indent(a:lnum)
+    let lnum = a:lnum
+    while lnum
+        let lnum = nextnonblank(lnum + 1)
+        if getline(lnum) =~ '^\s*#' | continue
+        elseif lnum && indent(lnum) <= indent
+            return prevnonblank(lnum - 1)
+        endif
+    endwhile
+    return line('$')
+endfunction "}}}
+"}}} vim: fdm=marker:fdl=0
 
 " https://github.com/python-mode/python-mode/blob/bb746d0d0cba9adedbac856429e37a0dbfc599c6/autoload/pymode/run.vim
 function! ExecutePython(line1, line2)
