@@ -19,7 +19,7 @@ Plug 'mhinz/vim-startify'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 "Enhance editing
-Plug 'vim-scripts/ReplaceWithRegister'
+Plug 'inkarkat/vim-ReplaceWithRegister'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-surround'
 "IDE experience
@@ -32,7 +32,7 @@ Plug 'tomtom/tcomment_vim'
 Plug 'blayz3r/vimcmdline'
 Plug 'ryanoasis/vim-devicons'
 Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }
-Plug 'lilydjwg/colorizer'
+Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
 Plug 'osyo-manga/vim-precious', { 'for': 'markdown' }
 Plug 'Shougo/context_filetype.vim'
 Plug 'mhinz/vim-signify'
@@ -52,7 +52,6 @@ Plug 'tweekmonster/braceless.vim'
 Plug 'vim-python/python-syntax'
 "Completion
 Plug 'honza/vim-snippets'
-Plug 'scrooloose/snipmate-snippets'
 Plug 'ycm-core/YouCompleteMe'
 Plug 'jiangmiao/auto-pairs'
 Plug 'SirVer/ultisnips'
@@ -74,7 +73,6 @@ call plug#end()            " required
 
 "General {{{
 
-"
 "" Files, backups and undo
 "" Turn backup off, since most stuff is in SVN, git et.c anyway...
 set nobackup
@@ -106,7 +104,7 @@ nnoremap <C-Space> :WhichKey ','<CR>
 nnoremap <C-\> :WhichKey '\'<CR>
 let g:which_key_use_floating_win = 0
 "Let working directory be current
-autocmd BufEnter * silent! lcd %:p:h
+set autochdir
 
 set splitbelow
 set splitright
@@ -129,8 +127,11 @@ noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
 "" Quickly open a buffer for scribble
 map <leader>e :enew<cr>
 
-"Close quickfix
-map  <leader>q :cclose<cr>
+"Open/Close quickfix locationlist
+map  <leader>qo :copen<cr>
+map  <leader>qc :cclose<cr>
+map  <leader>lo :lopen<cr>
+map  <leader>lc :lclose<cr>
 
 "" Toggle paste mode on and off
 map <leader>px :setlocal paste!<cr>
@@ -199,7 +200,29 @@ autocmd GUIEnter * set vb t_vb=
 set tm=500
 set belloff=all
 set lines=99 columns=999
-" Enable syntax highlighting
+"Colorizer
+let g:Hexokinase_highlighters = ['foregroundfull']
+" All possible values
+let g:Hexokinase_optInPatterns = [
+\     'full_hex',
+\     'triple_hex',
+\     'rgb',
+\     'rgba',
+\     'hsl',
+\     'hsla',
+\     'colour_names'
+\ ]
+" All possible values
+let g:Hexokinase_optInPatterns = [
+\     'full_hex',
+\     'triple_hex',
+\     'rgb',
+\     'rgba',
+\     'hsl',
+\     'hsla',
+\     'colour_names'
+\ ]
+"Enable syntax highlighting
 syntax enable
 set number
 "Sneak colours
@@ -305,9 +328,6 @@ nmap <s-Del> :bw<cr>
 nmap <C-Del> :%bd\|e#\|bd#<cr>
 "Source
 nmap <leader>sa :so %<cr>
-"
-" Switch CWD to the directory of the open buffer
-map <leader>zd :cd %:p:h<cr>:pwd<cr>
 
 " Specify the behavior when switching between buffers
 try
@@ -411,7 +431,7 @@ highlight QuickFixLine guifg='NONE'
 " highlight Search guibg=#3D5B8C guifg='NONE'
 " highlight IncSearch guibg=#3D5B8C guifg='NONE'
 highlight Search gui=NONE guibg=Purple4 guifg=WHITE
-" highlight Search guifg=hotpink3 guibg=grey20
+" highlight Search guifg=hotpink3 guibg=fuchsia
 " hi Search guifg=NONE guibg=NONE gui=underline
 highlight IncSearch gui=reverse guifg=fg guibg=bg
 " Enhanced search
@@ -446,6 +466,7 @@ function! VisualFindAndReplace()
     :noh
 endfunction
 nnoremap <leader>v :call VisualFindAndReplace()<CR>
+nnoremap <M-g> :g/
 
 "  Visual mode related
 function! VisualFindAndReplaceWithSelection() range
@@ -641,12 +662,14 @@ let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
 set completeopt+=menuone,longest
 set completeopt+=popup
 set completepopup=height:10,width:60,highlight:Pmenu,border:off
+
 " Apply YCM FixIt
 map <M-c> :YcmCompleter FixIt<CR>
 nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
 nnoremap <C-x> :YcmCompleter RefactorRename 
 vnoremap <C-x> :ALECodeAction<CR>
+nmap K <plug>(YCMHover)
 "}}}
 
 "Vim startify {{{
@@ -685,29 +708,30 @@ nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e tig blame -w '.expand("%
 nnoremap <silent> <leader>gc :Git checkout %<CR>
 
 nnoremap <silent> <leader>gd :Gdiffsplit<CR>
-nnoremap <silent> <leader>gg :call Flt_term_win('wsl -e tig grep -w '.expand("<cword>"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e tig log -w '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <Leader>gm :call setbufvar(winbufnr(popup_atcursor(systemlist("cd " . shellescape(fnamemodify(resolve(expand('%:p')), ":h")) . " && git log --no-merges -n 1 -L " . shellescape(line("v") . "," . line(".") . ":" . resolve(expand("%:p")))), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 nnoremap <silent> <leader>gp :call Flt_term_win('lazygit',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gs :call Flt_term_win('wsl -e tig status',0.9,0.6,'Todo')<CR>
-nnoremap <silent> <leader>gS :GFiles?<CR>
-nnoremap <silent> <leader>gt :call Flt_term_win('wsl -e tig show',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gw :Gwrite<CR>
+
 "Vim-signify  hunk jumping
-"
 nmap <leader>gh :SignifyHunkDiff<CR>
 nmap <leader>gj <plug>(signify-next-hunk)
 nmap <leader>gk <plug>(signify-prev-hunk)
 "Vim-signify hunk text object
-omap ic <plug>(signify-motion-inner-pending)
-xmap ic <plug>(signify-motion-inner-visual)
-omap ac <plug>(signify-motion-outer-pending)
-xmap ac <plug>(signify-motion-outer-visual)
+omap ih <plug>(signify-motion-inner-pending)
+xmap ih <plug>(signify-motion-inner-visual)
+omap ah <plug>(signify-motion-outer-pending)
+xmap ah <plug>(signify-motion-outer-visual)
+"Fugitive
+nmap <leader>dg :diffget<CR>
+nmap <leader>dp :diffput<CR>
+
+
 "}}}
 
 "ALE {{{
 " Fix Python files with autopep8 
-nmap <silent> <C-k> <Plug>(ale_previous_wrap)
-nmap <silent> <C-j> <Plug>(ale_next_wrap)
 let b:ale_fix_on_save = 1
 " ALE signs
 let g:ale_sign_error = '✗'
@@ -721,7 +745,7 @@ let g:ale_linters = {
             \   'javascript': ['jshint', 'eslint'],
             \   'sh': ['shellcheck'],
             \   'python': ['flake8','pyright','jedils'],
-            \   'r': ['lintr'],
+            \   'r': ['lintr','languageserver'],
             \   'bash': ['shellcheck'],
             \   'zsh': ['shellcheck']
             \}
@@ -734,7 +758,7 @@ let g:ale_echo_msg_format = '[%linter%] %s [%severity%]'
 " Author: Kent Nassen
 nnoremap <F8> :call RunSASonCurrentFile()<CR>
 nnoremap <Leader>sk :call LoadSASLogList()<CR>
-nnoremap <Leader>lc :call CheckSASLog()<CR>
+nnoremap <Leader>sl :call CheckSASLog()<CR>
 
 function! LoadSASLogList()
     :let log=bufexists(expand("%:p:r") . ".log")
@@ -810,12 +834,22 @@ let R_rconsole_width = 120
 let R_min_editor_width = 120
 let g:rmd_fenced_languages = ['r', 'python']
 let g:markdown_fenced_languages = ['r', 'python']
+"R language server
+let g:ycm_language_server = 
+\ [
+\       {   "name" : 'languageserver',
+\            "cmdline": ["wsl", "-e", "/usr/bin/R", "--slave", "-e", "languageserver::run()"],
+\            "filetypes" : ["r"]
+\        }
+\    ]
+
 "}}}
 
 "Python Setup {{{
 let g:python_highlight_all = 1
 autocmd FileType python,r map <buffer> <M-l> :ALEFix<CR>
 au BufRead,BufNewFile *.py setlocal textwidth=80
+"Add bracketed paste Windows app
 let cmdline_map_send = "<LocalLeader>l"
 let cmdline_tmp_dir     = 'C:\\Users\\Tate\\temp'
 let g:pymode_quickfix_minheight = 3
@@ -838,30 +872,30 @@ autocmd FileType python BracelessEnable +indent
 let g:braceless_block_key = 'b'
 let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
 "Python Motions
-autocmd FileType python nnoremap <buffer> ]C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
-autocmd FileType python nnoremap <buffer> [C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', 'b')<CR>
-autocmd FileType python nnoremap <buffer> ]M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
-autocmd FileType python nnoremap <buffer> [M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
+autocmd FileType python nnoremap <buffer> ]c  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
+autocmd FileType python nnoremap <buffer> [c  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', 'b')<CR>
+autocmd FileType python nnoremap <buffer> ]m  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
+autocmd FileType python nnoremap <buffer> [m  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
 
-autocmd FileType python onoremap <buffer> ]C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
-autocmd FileType python onoremap <buffer> [C  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', 'b')<CR>
-autocmd FileType python onoremap <buffer> ]M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
-autocmd FileType python onoremap <buffer> [M  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
+autocmd FileType python onoremap <buffer> ]c  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
+autocmd FileType python onoremap <buffer> [c  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', 'b')<CR>
+autocmd FileType python onoremap <buffer> ]m  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
+autocmd FileType python onoremap <buffer> [m  :<C-U>call Pymode_move('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
 
-autocmd FileType python vnoremap <buffer> ]M  :call Pymode_vmove('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
-autocmd FileType python vnoremap <buffer> [M  :call Pymode_vmove('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
+autocmd FileType python vnoremap <buffer> ]m  :call Pymode_vmove('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', '')<CR>
+autocmd FileType python vnoremap <buffer> [m  :call Pymode_vmove('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 'b')<CR>
 
-autocmd FileType python onoremap <buffer> C  :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
-autocmd FileType python onoremap <buffer> aC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
-autocmd FileType python onoremap <buffer> iC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 1)<CR>
-autocmd FileType python vnoremap <buffer> aC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
-autocmd FileType python vnoremap <buffer> iC :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 1)<CR>
+autocmd FileType python onoremap <buffer> c  :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> ac :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> ic :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 1)<CR>
+autocmd FileType python vnoremap <buffer> ac :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 0)<CR>
+autocmd FileType python vnoremap <buffer> ic :<C-U>call Pymode_select_c('^<Bslash>s*class<Bslash>s', 1)<CR>
 
-autocmd FileType python onoremap <buffer> M   :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
-autocmd FileType python onoremap <buffer> aM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
-autocmd FileType python onoremap <buffer> iM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 1)<CR>
-autocmd FileType python vnoremap <buffer> aM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
-autocmd FileType python vnoremap <buffer> iM  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 1)<CR>
+autocmd FileType python onoremap <buffer> m   :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> am  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
+autocmd FileType python onoremap <buffer> im  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 1)<CR>
+autocmd FileType python vnoremap <buffer> am  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 0)<CR>
+autocmd FileType python vnoremap <buffer> im  :<C-U>call Pymode_select('^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=@', '^<Bslash>s*<Bslash>(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>s', 1)<CR>
 "}}}
 
 "Python Debugger {{{
@@ -886,25 +920,20 @@ augroup END
 command! -nargs=? Livepy call Livepy_toggle(&filetype)
 command! -bar LivepyUpdate call Livepy_do_update()
 nmap \d :Livepy<cr>
-"}}}
-
-"Terminal mappings {{{
 "Codi
 nmap \c :Codi!!<cr>
 let g:codi#rightalign = 0
 let g:codi#width =110
+"}}}
+
+"Terminal mappings {{{
+
 "Contpy
 set termwintype=conpty
 nmap <F6> :call Flt_term_win('wsl',0.9,0.6,'Todo')<CR>
 nmap <C-F6> :term++close wsl <CR>
 vmap <C-F6> :!wsl -e
 tmap <S-Insert> <C-W>"+
-"}}}
-
-"Java Setup {{{
-" map <C-F4> :!javac -d "%:p:h:s?src?bin?" %<CR>
-" map <F4> :!java -classpath "%:p:h:s?src?bin?" %:r<CR>
-
 "}}}
 
 "Matlab {{{
