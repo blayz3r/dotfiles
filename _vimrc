@@ -71,7 +71,7 @@ Plug 'tpope/vim-fugitive'
 call plug#end()            " required
 "}}}
 
-"General {{{
+" change Pmenu to your highlight grouGeneral {{{
 
 "" Files, backups and undo
 "" Turn backup off, since most stuff is in SVN, git et.c anyway...
@@ -104,7 +104,7 @@ nnoremap <C-Space> :WhichKey ','<CR>
 nnoremap <C-\> :WhichKey '\'<CR>
 let g:which_key_use_floating_win = 0
 "Let working directory be current
-set autochdir
+autocmd BufEnter * silent! lcd %:p:h
 
 set splitbelow
 set splitright
@@ -669,7 +669,6 @@ nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
 nnoremap <C-x> :YcmCompleter RefactorRename 
 vnoremap <C-x> :ALECodeAction<CR>
-nmap K <plug>(YCMHover)
 "}}}
 
 "Vim startify {{{
@@ -834,7 +833,9 @@ let R_rconsole_width = 120
 let R_min_editor_width = 120
 let g:rmd_fenced_languages = ['r', 'python']
 let g:markdown_fenced_languages = ['r', 'python']
+
 "R language server
+autocmd FileType r nmap K <plug>(YCMHover)
 let g:ycm_language_server = 
 \ [
 \       {   "name" : 'languageserver',
@@ -927,7 +928,6 @@ let g:codi#width =110
 "}}}
 
 "Terminal mappings {{{
-
 "Contpy
 set termwintype=conpty
 nmap <F6> :call Flt_term_win('wsl',0.9,0.6,'Todo')<CR>
