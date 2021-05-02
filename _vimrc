@@ -20,7 +20,7 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 "Enhance editing
 Plug 'inkarkat/vim-ReplaceWithRegister'
-Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-repeat', {'on' : '.'}
 Plug 'tpope/vim-surround'
 "IDE experience
 Plug 'junegunn/vim-peekaboo'
@@ -28,10 +28,11 @@ Plug 'junegunn/vim-easy-align'
 Plug 'mbbill/undotree', { 'on': 'UndotreeToggle' }
 Plug 'kshenoy/vim-signature'
 Plug 'dense-analysis/ale'
-Plug 'tomtom/tcomment_vim'
+Plug 'tomtom/tcomment_vim', 
 Plug 'blayz3r/vimcmdline'
 Plug 'ryanoasis/vim-devicons'
-Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }
+Plug 'liuchengxu/vim-which-key'
+Plug 'liuchengxu/vista.vim'
 Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
 Plug 'osyo-manga/vim-precious', { 'for': 'markdown' }
 Plug 'Shougo/context_filetype.vim'
@@ -47,9 +48,9 @@ Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-function', { 'for':['c', 'cpp', 'vim', 'java'] }
 Plug 'junegunn/vim-after-object'
 "Python
-Plug 'ehamberg/vim-cute-python'
-Plug 'tweekmonster/braceless.vim'
-Plug 'vim-python/python-syntax'
+Plug 'ehamberg/vim-cute-python', { 'for': ['python', 'ipynb'] }
+Plug 'tweekmonster/braceless.vim', { 'for': ['python', 'ipynb'] } 
+Plug 'vim-python/python-syntax', { 'for': ['python', 'ipynb'] }
 "Completion
 Plug 'honza/vim-snippets'
 Plug 'ycm-core/YouCompleteMe'
@@ -65,7 +66,7 @@ Plug 'osyo-manga/vim-anzu'
 Plug 'osyo-manga/vim-over'
 Plug 'dyng/ctrlsf.vim'
 "R
-Plug 'jalvesaq/Nvim-R'
+Plug 'jalvesaq/Nvim-R', {'for': 'r'}
 " Git
 Plug 'tpope/vim-fugitive'
 call plug#end()            " required
@@ -544,11 +545,10 @@ let g:fzf_tags_command = 'ctags -R'
 let g:fzf_commands_expect = 'alt-enter,ctrl-x'
 
 " Make FZF mappings
-nnoremap <Leader>t :BTags<CR>
 nnoremap <Leader>k :Rg! 
 nnoremap <Leader>h :MRU<CR>
 nnoremap <Leader>c :History:<CR>
-nnoremap <silent> <expr> <Leader><Leader> (expand('%') =~ 'NERD_tree' ? "\<c-w>\<c-w>" : '').":Files\<cr>"
+nnoremap <silent><Leader><Leader> :call FZFWithDevIcons()<CR>
 " Augmenting Rg command using fzf#vim#with_preview function
 "   * fzf#vim#with_preview([[options], preview window, [toggle keys...]])
 "     * For syntax-highlighting, Ruby and any of the following tools are required:
@@ -593,6 +593,37 @@ let g:fzf_action = {
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-x': 'split',
   \ 'ctrl-v': 'vsplit' }
+
+function! FZFWithDevIcons()
+  let l:fzf_files_options = ' -m --bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up --preview "bat --color always --style numbers {2..}"'
+
+  function! s:files()
+    let l:files = split(system('wsl fdfind --hidden --type f --exclude .git | wsl -e zsh -ic devicon-lookup'), '\n')
+    return l:files
+  endfunction
+
+  function! s:edit_file(items)
+    let items = a:items
+    let i = 1
+    let ln = len(items)
+    while i < ln
+      let item = items[i]
+      let l:pos = stridx(a:item, ' ')
+      let l:file_path = a:item[pos+1:]
+      let items[i] = file_path
+      let i += 1
+    endwhile
+    call s:Sink(items)
+  endfunction
+
+  let opts = fzf#wrap({})
+  let opts.source = <sid>files()
+  let s:Sink = opts['sink*']
+  let opts['sink*'] = function('s:edit_file')
+  let opts.options .= l:fzf_files_options
+  call fzf#run(opts)
+endfunction
+
 
 "}}}
 
@@ -699,6 +730,16 @@ let g:undotree_WindowLayout = 2
 nnoremap <F12> :UndotreeToggle<CR>
 let g:undotree_HelpLine = 0
 let g:undotree_SetFocusWhenToggle = 1
+"}}}
+
+"Vista {{{
+
+let g:vista_default_executive = 'ale'
+nnoremap <Leader>t :Vista finder<CR>
+let g:vista_disable_statusline = 0
+" This should be added in users' vimrc
+autocmd VimEnter * call vista#RunForNearestMethodOrFunction()
+let g:vista_fzf_preview = ['right:50%']
 "}}}
 
 "Git {{{
