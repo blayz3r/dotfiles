@@ -545,10 +545,9 @@ let g:fzf_tags_command = 'ctags -R'
 let g:fzf_commands_expect = 'alt-enter,ctrl-x'
 
 " Make FZF mappings
-nnoremap <Leader>k :Rg! 
-nnoremap <Leader>h :MRU<CR>
-nnoremap <Leader>c :History:<CR>
-nnoremap <silent><Leader><Leader> :call FZFWithDevIcons()<CR>
+nnoremap <silent><Leader>k :Rg! 
+nnoremap <silent><Leader>h :MRU<CR>
+nnoremap <silent><Leader>c :History:<CR>
 " Augmenting Rg command using fzf#vim#with_preview function
 "   * fzf#vim#with_preview([[options], preview window, [toggle keys...]])
 "     * For syntax-highlighting, Ruby and any of the following tools are required:
@@ -593,36 +592,6 @@ let g:fzf_action = {
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-x': 'split',
   \ 'ctrl-v': 'vsplit' }
-
-function! FZFWithDevIcons()
-  let l:fzf_files_options = ' -m --bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up --preview "bat --color always --style numbers {2..}"'
-
-  function! s:files()
-    let l:files = split(system('wsl fdfind --hidden --type f --exclude .git | wsl -e zsh -ic devicon-lookup'), '\n')
-    return l:files
-  endfunction
-
-  function! s:edit_file(items)
-    let items = a:items
-    let i = 1
-    let ln = len(items)
-    while i < ln
-      let item = items[i]
-      let l:pos = stridx(a:item, ' ')
-      let l:file_path = a:item[pos+1:]
-      let items[i] = file_path
-      let i += 1
-    endwhile
-    call s:Sink(items)
-  endfunction
-
-  let opts = fzf#wrap({})
-  let opts.source = <sid>files()
-  let s:Sink = opts['sink*']
-  let opts['sink*'] = function('s:edit_file')
-  let opts.options .= l:fzf_files_options
-  call fzf#run(opts)
-endfunction
 
 
 "}}}
