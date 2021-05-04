@@ -545,7 +545,7 @@ let g:fzf_tags_command = 'ctags -R'
 let g:fzf_commands_expect = 'alt-enter,ctrl-x'
 
 " Make FZF mappings
-nnoremap <silent><Leader>k :Rg! 
+nnoremap <Leader>k :Rg! 
 nnoremap <silent><Leader>h :MRU<CR>
 nnoremap <silent><Leader>c :History:<CR>
 " Augmenting Rg command using fzf#vim#with_preview function
@@ -565,10 +565,6 @@ command! -bang -nargs=* Rg
             \   <bang>0)
 
 command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview-window=sharp']})
-
-" Likewise, Files command with preview window
-command! -bang -nargs=? -complete=dir Files
-    \ call fzf#vim#files(<q-args>, {'options': ['--preview-window=sharp']}, <bang>0)
 
 nnoremap <silent> gv :Rg <C-R><C-W><CR>
 "FZF preview
@@ -593,7 +589,6 @@ let g:fzf_action = {
   \ 'ctrl-x': 'split',
   \ 'ctrl-v': 'vsplit' }
 
-
 "}}}
 
 "VIM AIR-LINE {{{
@@ -616,7 +611,9 @@ let g:airline_left_sep = ''
 let g:airline_right_alt_sep = ''
 let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
+let g:airline_symbols.colnr = 'Π'
 let g:airline_symbols.linenr = ''
+let g:airline_symbols.maxlinenr = 'Ω'
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#vista#enabled = 1
 let g:airline#extensions#tabline#enabled = 1
