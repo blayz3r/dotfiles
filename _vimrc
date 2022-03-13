@@ -8,6 +8,7 @@
 " ╚═╝ ╚═══╝   ╚═╝ ╚═╝     ╚═╝ ╚═╝  ╚═╝  ╚═════╝
 "
 " Sections
+
 "Vim-Plug Plugin Manager  {{{
 " set the run path
 call plug#begin('~/.vim/bundle')
@@ -72,7 +73,7 @@ Plug 'tpope/vim-fugitive'
 call plug#end()            " required
 "}}}
 
-" change Pmenu to your highlight grouGeneral {{{
+"General {{{
 
 "" Files, backups and undo
 "" Turn backup off, since most stuff is in SVN, git et.c anyway...
@@ -147,14 +148,15 @@ nnoremap <Home> :e ~/_vimrc<CR>
 "" Set 7 lines to the cursor - when moving vertically using j/k
 set so=7
 "" Turn on the WiLd menu
-set wildmenu
-set wildmode=list:full,full
+" set wildmenu
+set wildmenu wildcharm=<C-z> wildoptions=pum,fuzzy pumheight=20
 "" Ignore compiled files
 set wildignore=*.o,*~,*.pyc
 "
 ""Always show current position
 set ruler
 "
+set tgc
 "" Height of the command bar
 set cmdheight=1
 " Add the unnamed register to the clipboard
@@ -201,6 +203,7 @@ autocmd GUIEnter * set vb t_vb=
 set tm=500
 set belloff=all
 set lines=99 columns=999
+set termguicolors
 "Colorizer
 let g:Hexokinase_highlighters = ['foregroundfull']
 " All possible values
@@ -389,11 +392,11 @@ endfor
 cnoremap <expr> <Tab> getcmdtype() == '/' \|\| getcmdtype() == '?' ? '<CR>/<C-r>/' : '<C-z>'
 cnoremap <expr> <S-Tab> getcmdtype() == '/' \|\| getcmdtype() == '?' ? '<CR>?<C-r>/' : '<S-Tab>'
 
-"  Easy Align
-" Start interactive EasyAlign in visual mode (e.g. vipga)
+" "  Easy Align
+" " Start interactive EasyAlign in visual mode (e.g. vipga)
 xmap <leader>a <Plug>(EasyAlign)
-
-"Defines text objects to target text after the designated characters."
+"
+" "Defines text objects to target text after the designated characters."
 autocmd VimEnter * call after_object#enable('=', ':', '-', '#', ' ', '/')
 
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
@@ -509,6 +512,7 @@ let g:ctrlsf_auto_focus = {
             \ }
 "grep
 set grepprg=rg\ --vimgrep
+set grepformat=%f:%l:%c:%m
 "file explorer
 nnoremap gof :!start explorer /select,%:p<CR>
 "}}}
@@ -548,6 +552,7 @@ let g:fzf_commands_expect = 'alt-enter,ctrl-x'
 nnoremap <Leader>k :Rg! 
 nnoremap <silent><Leader>h :MRU<CR>
 nnoremap <silent><Leader>c :History:<CR>
+nnoremap <silent><Leader>t :BTags<CR>
 " Augmenting Rg command using fzf#vim#with_preview function
 "   * fzf#vim#with_preview([[options], preview window, [toggle keys...]])
 "     * For syntax-highlighting, Ruby and any of the following tools are required:
@@ -588,7 +593,6 @@ let g:fzf_action = {
   \ 'ctrl-t': 'tab split',
   \ 'ctrl-x': 'split',
   \ 'ctrl-v': 'vsplit' }
-
 "}}}
 
 "VIM AIR-LINE {{{
@@ -611,9 +615,9 @@ let g:airline_left_sep = ''
 let g:airline_right_alt_sep = ''
 let g:airline_symbols.branch = ''
 let g:airline_symbols.readonly = ''
-let g:airline_symbols.colnr = 'Π'
-let g:airline_symbols.linenr = ''
-let g:airline_symbols.maxlinenr = 'Ω'
+let g:airline_symbols.colnr = 'Ω:'
+let g:airline_symbols.linenr = ' :'
+let g:airline_symbols.maxlinenr = ' '
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#vista#enabled = 1
 let g:airline#extensions#tabline#enabled = 1
@@ -666,6 +670,7 @@ nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
 nnoremap <C-x> :YcmCompleter RefactorRename 
 vnoremap <C-x> :ALECodeAction<CR>
+
 "}}}
 
 "Vim startify {{{
@@ -700,8 +705,8 @@ let g:undotree_SetFocusWhenToggle = 1
 
 "Vista {{{
 
-let g:vista_default_executive = 'ale'
-nnoremap <Leader>t :Vista finder<CR>
+" let g:vista_default_executive = 'ale'
+" nnoremap <Leader>t :Vista finder<CR>
 let g:vista_disable_statusline = 0
 " This should be added in users' vimrc
 autocmd VimEnter * call vista#RunForNearestMethodOrFunction()
@@ -709,15 +714,15 @@ let g:vista_fzf_preview = ['right:50%']
 "}}}
 
 "Git {{{
-nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e tig',0.9,0.6,'Todo')<CR>
-nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e tig blame -w '.expand("%"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e zsh -ic tig',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e zsh -ic "tig blame -w" '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gc :Git checkout %<CR>
 
 nnoremap <silent> <leader>gd :Gdiffsplit<CR>
-nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e tig log -w '.expand("%"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e zsh -ic "tig log -w"' ".expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <Leader>gm :call setbufvar(winbufnr(popup_atcursor(systemlist("cd " . shellescape(fnamemodify(resolve(expand('%:p')), ":h")) . " && git log --no-merges -n 1 -L " . shellescape(line("v") . "," . line(".") . ":" . resolve(expand("%:p")))), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 nnoremap <silent> <leader>gp :call Flt_term_win('lazygit',0.9,0.6,'Todo')<CR>
-nnoremap <silent> <leader>gs :call Flt_term_win('wsl -e tig status',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gs :call Flt_term_win('wsl -e zsh -ic "tig status"',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gw :Gwrite<CR>
 
 "Vim-signify  hunk jumping
@@ -737,6 +742,12 @@ nmap <leader>dp :diffput<CR>
 "}}}
 
 "ALE {{{
+"Hover
+
+let g:ale_hover_to_preview=1
+let g:ale_detail_to_floating_preview=1
+let g:ale_floating_preview=1
+let g:ale_floating_window_border = ['│', '─', '┌', '┐', '┘', '└']
 " Fix Python files with autopep8 
 let b:ale_fix_on_save = 1
 " ALE signs
@@ -825,7 +836,7 @@ let R_args = []  " if you had set any
 let R_bracketed_paste = 0
 let g:Rout_prompt_str = '» '
 let Rout_more_colors = 1
-let R_in_buffer=1
+let R_external_term = 0
 let R_specialplot = 1
 let R_setwidth = 0
 let R_clear_line = 0
@@ -842,7 +853,7 @@ let g:rmd_fenced_languages = ['r', 'python']
 let g:markdown_fenced_languages = ['r', 'python']
 
 "R language server
-autocmd FileType r nmap K <plug>(YCMHover)
+autocmd FileType r,cpp nmap K <plug>(YCMHover)
 let g:ycm_language_server = 
 \ [
 \       {   "name" : 'languageserver',
@@ -1117,12 +1128,12 @@ function! Flt_term_win(cmd, width, height, border_highlight) abort
             \ 'border': [],
             \ 'borderchars': ['─', '│', '─', '│', '┌', '┐', '┘', '└'],
             \ 'borderhighlight': [a:border_highlight],
-            \ 'padding': [0,1,0,1],
-            \ 'highlight': a:border_highlight
+            \ 'padding': [0,1,0,1]
             \ })
 
     " Optionally set the 'Normal' color for the terminal buffer
-    " call setwinvar(winid, '&wincolor', 'Special')
+    " hi MyPopupColor ctermbg=NONE guibg=NONE
+    call setwinvar(winid, '&wincolor', 'Normal')
 
     return winid
 endfunction
@@ -1223,8 +1234,7 @@ function RangerExplorer(cmd, width, height, border_highlight) abort
             \ })
 
     " Optionally set the 'Normal' color for the terminal buffer
-    " call setwinvar(winid, '&wincolor', 'Special')
-
+    call setwinvar(winid, '&wincolor', 'Normal')
     return winid
 endfunction
 " Register that the job no longer exists
@@ -1321,7 +1331,7 @@ function! Livepy_do_update()
     let magic = "\n\<cr>\<c-d>\<c-d>\<cr>" " to get out of REPL
     let input = input.magic
 
-    let pycmd = ['python', '-m', 'space_tracer', '-l', '-']  
+    let pycmd = ['space_tracer', '-l', '-']  
     let pywin32_bin = 'C:\\Users\\Tate\\temp\\pycmd'
     let pytmp_bin = '/mnt/c/Users/Tate/temp/pycmd'
     call writefile([Shellescape_list(pycmd)], pywin32_bin)
