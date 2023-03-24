@@ -121,7 +121,7 @@ set undolevels=10000
 "Use Directx rendering
 set rop=type:directx,gamma:1.0,contrast:0.5,level:1,geom:1,renmode:4,taamode:1
 "Plug
-nnoremap <Leader>up :PlugUpdate<CR>
+nnoremap <Leader><leader> :PlugUpdate<CR>
 nnoremap <Leader>in :PlugInstall<CR>
 "" Remove the Windows ^M - when the encodings gets messed up
 noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
@@ -520,6 +520,7 @@ nnoremap gof :!start explorer /select,%:p<CR>
 "Fuzzy File Search Setup {{{
 " [Buffers] Jump to the existing window if possible
 let g:fzf_buffers_jump = 1
+" let g:fzf_force_termguicolors =1
     " Customize fzf colors to match your color scheme
     " - fzf#wrap translates this to a set of `--color` options
 " Customize fzf colors to match your color scheme
@@ -565,7 +566,7 @@ nnoremap <silent><Leader>t :BTags<CR>
 " Similarly, we can apply it to fzf#vim#grep. To use ripgrep instead of ag:
 command! -bang -nargs=* Rg
             \ call fzf#vim#grep(
-            \ 'rg --column --color=always --line-number --colors "match:fg:white" --colors "match:bg:red" --colors "column:fg:57,143,229" --colors "path:fg:203,133,204" --colors "line:fg:128,128,128" --colors "line:style:bold" '.<q-args>, 1, 
+            \ 'rg --column --color=always --line-number --colors "match:fg:black" --colors "match:bg:red" --colors "column:fg:57,143,229" --colors "path:fg:203,133,204" --colors "line:fg:128,128,128" --colors "line:style:bold" '.<q-args>, 1, 
             \   fzf#vim#with_preview({'options': ['--color', 'hl:68,hl+:110', '--preview-window', 'sharp']}),
             \   <bang>0)
 
@@ -668,9 +669,9 @@ set completepopup=height:10,width:60,highlight:Pmenu,border:off
 map <M-c> :YcmCompleter FixIt<CR>
 nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
-nnoremap <C-x> :YcmCompleter RefactorRename 
+nnoremap <silent> <C-x> <cmd>execute 'YcmCompleter RefactorRename' input( 'Rename to: ' )<CR>
 vnoremap <C-x> :ALECodeAction<CR>
-
+let g:ycm_enable_inlay_hints=1
 "}}}
 
 "Vim startify {{{
@@ -711,15 +712,16 @@ let g:vista_disable_statusline = 0
 " This should be added in users' vimrc
 autocmd VimEnter * call vista#RunForNearestMethodOrFunction()
 let g:vista_fzf_preview = ['right:50%']
+
 "}}}
 
 "Git {{{
 nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e zsh -ic tig',0.9,0.6,'Todo')<CR>
-nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e zsh -ic "tig blame -w" '.expand("%"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e zsh -ic "tig blame -w '.expand("%").'"',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gc :Git checkout %<CR>
 
 nnoremap <silent> <leader>gd :Gdiffsplit<CR>
-nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e zsh -ic "tig log -w"' ".expand("%"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e zsh -ic "tig log -w" '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <Leader>gm :call setbufvar(winbufnr(popup_atcursor(systemlist("cd " . shellescape(fnamemodify(resolve(expand('%:p')), ":h")) . " && git log --no-merges -n 1 -L " . shellescape(line("v") . "," . line(".") . ":" . resolve(expand("%:p")))), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 nnoremap <silent> <leader>gp :call Flt_term_win('lazygit',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gs :call Flt_term_win('wsl -e zsh -ic "tig status"',0.9,0.6,'Todo')<CR>
@@ -743,7 +745,8 @@ nmap <leader>dp :diffput<CR>
 
 "ALE {{{
 "Hover
-
+let g:ale_virtualtext_cursor=1
+let g:ale_virtualtext_prefix = "🔥 "
 let g:ale_hover_to_preview=1
 let g:ale_detail_to_floating_preview=1
 let g:ale_floating_preview=1
@@ -761,7 +764,7 @@ let g:syntastic_warning_symbol =''
 let g:ale_linters = {
             \   'javascript': ['jshint', 'eslint'],
             \   'sh': ['shellcheck'],
-            \   'python': ['flake8','pyright','jedils'],
+            \   'python': ['pyright','jedils','flake8'],
             \   'r': ['lintr','languageserver'],
             \   'bash': ['shellcheck'],
             \   'zsh': ['shellcheck']
@@ -875,6 +878,8 @@ let g:pymode_quickfix_minheight = 3
 let g:pymode_quickfix_maxheight = 6
 let g:pymode_preview_position = "botright"
 let g:pymode_preview_height = &previewheight  
+let g:codi#virtual_text = 1 
+let g:codi#virtual_text_prefix = " ❯ "
 map <M-q> :bd __run__<CR>
 "csv data
 nmap <F4> :call Flt_term_win('wsl visidata',0.9,0.6,'Todo')<CR>
@@ -887,6 +892,7 @@ autocmd FileType python nnoremap <buffer> K :call PyDocVim()<CR>
 
 let cmdline_app           = {}
 let cmdline_app['python']   = 'wsl ptpython'
+let cmdline_app['matlab']   = 'wsl octave'
 autocmd FileType python BracelessEnable +indent
 let g:braceless_block_key = 'b'
 let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
@@ -941,13 +947,13 @@ command! -bar LivepyUpdate call Livepy_do_update()
 nmap \d :Livepy<cr>
 "Codi
 nmap \c :Codi!!<cr>
+nmap \\c :Codi!<cr>
 let g:codi#rightalign = 0
 let g:codi#width =110
 "}}}
 
 "Terminal mappings {{{
 "Contpy
-set termwintype=conpty
 nmap <F6> :call Flt_term_win('wsl',0.9,0.6,'Todo')<CR>
 nmap <C-F6> :term++close wsl <CR>
 vmap <C-F6> :!wsl -e
