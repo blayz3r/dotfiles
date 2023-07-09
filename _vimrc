@@ -12,8 +12,6 @@
 "Vim-Plug Plugin Manager  {{{
 " set the run path
 call plug#begin('~/.vim/bundle')
-"plugins root path
-"All of your Plugs must be added before the following line
 "Starting screen
 Plug 'mhinz/vim-startify'
 "Airline
@@ -32,19 +30,12 @@ Plug 'dense-analysis/ale'
 Plug 'tomtom/tcomment_vim', 
 Plug 'blayz3r/vimcmdline'
 Plug 'ryanoasis/vim-devicons'
-Plug 'liuchengxu/vim-which-key'
-Plug 'liuchengxu/vista.vim'
-Plug 'rrethy/vim-hexokinase', { 'do': 'make hexokinase' }
-Plug 'osyo-manga/vim-precious', { 'for': 'markdown' }
-Plug 'Shougo/context_filetype.vim'
+Plug 'blayz3r/vim-hexokinase', { 'do': 'make hexokinase' }
 Plug 'mhinz/vim-signify'
 Plug 'blayz3r/codi.vim'
 "Enhance motions
 Plug 'justinmk/vim-sneak'
 Plug 'tpope/vim-unimpaired'
-Plug 'easymotion/vim-easymotion'
-Plug 'haya14busa/vim-easyoperator-line'
-Plug 'mg979/vim-visual-multi'
 Plug 'kana/vim-textobj-user'
 Plug 'kana/vim-textobj-function', { 'for':['c', 'cpp', 'vim', 'java'] }
 Plug 'junegunn/vim-after-object'
@@ -58,18 +49,16 @@ Plug 'ycm-core/YouCompleteMe'
 Plug 'jiangmiao/auto-pairs'
 Plug 'SirVer/ultisnips'
 Plug 'ervandew/supertab'
-"Tex
-Plug 'lervag/vimtex', {'for': ['tex', 'plaintex', 'bst']}
 "Search enhancer
 Plug 'junegunn/fzf',  { 'dir': '~/.fzf' }
 Plug 'junegunn/fzf.vim'
 Plug 'osyo-manga/vim-anzu'
 Plug 'osyo-manga/vim-over'
-Plug 'dyng/ctrlsf.vim'
 "R
 Plug 'jalvesaq/Nvim-R', {'for': 'r'}
 " Git
 Plug 'tpope/vim-fugitive'
+Plug 'Eliot00/git-lens.vim'
 call plug#end()            " required
 "}}}
 
@@ -102,9 +91,6 @@ set autoread
 " like <leader>w saves the current file
 let mapleader = ","
 let g:mapleader = ","
-nnoremap <C-Space> :WhichKey ','<CR>
-nnoremap <C-\> :WhichKey '\'<CR>
-let g:which_key_use_floating_win = 0
 "Let working directory be current
 autocmd BufEnter * silent! lcd %:p:h
 
@@ -121,7 +107,7 @@ set undolevels=10000
 "Use Directx rendering
 set rop=type:directx,gamma:1.0,contrast:0.5,level:1,geom:1,renmode:4,taamode:1
 "Plug
-nnoremap <Leader><leader> :PlugUpdate<CR>
+nnoremap <Leader>up :PlugUpdate<CR>
 nnoremap <Leader>in :PlugInstall<CR>
 "" Remove the Windows ^M - when the encodings gets messed up
 noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
@@ -233,11 +219,8 @@ set number
 autocmd ColorScheme * hi SneakLabel gui=reverse guifg=fg guibg=bg 
 " autocmd ColorScheme * hi Sneak gui=reverse guifg=fg guibg=bg
 autocmd ColorScheme * hi! link Sneak Normal
-"colorscheme Tomorrow-Night
-" colorscheme nord
-" colorscheme one
+"Colorscheme one
 colorscheme onedark
-" colorscheme gruvbox
 "menu color
 highlight Pmenu guibg=#21252b 
 " hi PmenuSel gui=NONE guifg=WHITE
@@ -416,12 +399,6 @@ nnoremap ]]  ]]zz
 nnoremap [[  [[zz
 nnoremap []  []zz
 nnoremap ][  ][zz
-"Multiple Cursors
-let g:VM_check_mappings = 0
-let g:VM_set_statusline = 0
-let g:VM_silent_exit = 1
-let g:VM_leader = '\\'
-let g:VM_force_maps = ['J']
 "Autopairs
 let g:AutoPairsShortcutJump ='<M-p>' 
 "}}}
@@ -434,7 +411,7 @@ highlight QuickFixLine guibg=#202020
 highlight QuickFixLine guifg='NONE'
 " highlight Search guibg=#3D5B8C guifg='NONE'
 " highlight IncSearch guibg=#3D5B8C guifg='NONE'
-highlight Search gui=NONE guibg=Purple4 guifg=WHITE
+highlight Search gui=NONE guibg=#0087af guifg=WHITE
 " highlight Search guifg=hotpink3 guibg=fuchsia
 " hi Search guifg=NONE guibg=NONE gui=underline
 highlight IncSearch gui=reverse guifg=fg guibg=bg
@@ -445,7 +422,10 @@ map * <Plug>(anzu-star-with-echo)
 map # <Plug>(anzu-sharp-with-echo)
 let g:anzu_status_format = "%p(%i/%l) %w"
 "Easymotion
-map <SPACE>  <Plug>(easymotion-prefix)
+nmap <space> <Plug>Sneak_s
+xmap <space> <Plug>Sneak_s
+nmap <c-space> <Plug>Sneak_S
+xmap <c-space> <Plug>Sneak_S
 " Enhanced f,F,t and T motions (move vertically and highlight matches)
 let g:sneak#label = 1
 nmap f <Plug>Sneak_f
@@ -470,7 +450,8 @@ function! VisualFindAndReplace()
     :noh
 endfunction
 nnoremap <leader>v :call VisualFindAndReplace()<CR>
-nnoremap <M-g> :g/
+nnoremap <M-g> :v/
+nnoremap <Leader>g :g/
 
 "  Visual mode related
 function! VisualFindAndReplaceWithSelection() range
@@ -494,22 +475,6 @@ xmap <Leader>r <Plug>ReplaceWithRegisterVisual
 nnoremap gb :OpenURL http://www.google.com/search?q=<cword><CR>
 nnoremap gx :OpenURL <cWORD><CR>
 vnoremap gb :call GoogleSelection()<CR>
-"CtrlSF
-" -R - Use regular expression pattern.
-" -I, -S - Search case-insensitively (-I) or case-sensitively (-S).
-" -C, -A, -B - Specify how many context lines to be printed, identical to their counterparts in Ag/Ack.
-" -W - Only match whole words.
-let g:ctrlsf_auto_preview = 1
-nmap        gV <Plug>CtrlSFCwordPath -W<CR>
-nmap     <M-k> <Plug>CtrlSFPrompt
-vmap     <M-k> <Plug>CtrlSFVwordExec<CR>
-nnoremap <M-o> :CtrlSFOpen<CR>
-nnoremap <M-t> :CtrlSFToggle<CR>
-inoremap <M-t> <Esc>:CtrlSFToggle<CR>
-" let g:ctrlsf_auto_preview = 0
-let g:ctrlsf_auto_focus = {
-            \ 'at': 'start',
-            \ }
 "grep
 set grepprg=rg\ --vimgrep
 set grepformat=%f:%l:%c:%m
@@ -548,6 +513,10 @@ let g:fzf_tags_command = 'ctags -R'
 
 " [Commands] --expect expression for directly executing the command
 let g:fzf_commands_expect = 'alt-enter,ctrl-x'
+"FZF preview
+" CTRL-A to select all and build quickfix list
+let $BAT_THEME = 'TwoDark'
+let $FZF_DEFAULT_OPTS = "--bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up --preview 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {} '"
 
 " Make FZF mappings
 nnoremap <Leader>k :Rg! 
@@ -573,10 +542,7 @@ command! -bang -nargs=* Rg
 command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview-window=sharp']})
 
 nnoremap <silent> gv :Rg <C-R><C-W><CR>
-"FZF preview
-" CTRL-A to select all and build quickfix list
-let $BAT_THEME = 'TwoDark'
-let $FZF_DEFAULT_OPTS = "--bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up --preview 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {} '"
+
 "Floating window
 let g:fzf_layout = {
     \ 'window': {
@@ -587,7 +553,7 @@ let g:fzf_layout = {
     \ }}
 "ranger file explorer https://github.com/ranger/ranger/issues/1827
 "sudo -H pip3 install ranger-fm
-nnoremap <silent> - :call RangerExplorer('wsl -e zsh -ic rangervim',0.9,0.6,'Todo')<CR>
+nnoremap <silent><Leader><Leader> :call RangerExplorer('wsl -e zsh -ic rangervim',0.9,0.6,'Todo')<CR>
 " nnoremap <silent> - :call Flt_term_win('bash ranger',0.9,0.6,'Todo')<CR>
 let g:fzf_action = {
   \ 'ctrl-q': '!start',
@@ -620,7 +586,6 @@ let g:airline_symbols.colnr = 'Ω:'
 let g:airline_symbols.linenr = ' :'
 let g:airline_symbols.maxlinenr = ' '
 let g:airline_powerline_fonts = 1
-let g:airline#extensions#vista#enabled = 1
 let g:airline#extensions#tabline#enabled = 1
 let g:airline#extensions#ycm#enabled = 1
 let g:airline#extensions#ycm#error_symbol = '𝐄'
@@ -666,11 +631,10 @@ set completeopt+=popup
 set completepopup=height:10,width:60,highlight:Pmenu,border:off
 
 " Apply YCM FixIt
-map <M-c> :YcmCompleter FixIt<CR>
 nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
-nnoremap <silent> <C-x> <cmd>execute 'YcmCompleter RefactorRename' input( 'Rename to: ' )<CR>
-vnoremap <C-x> :ALECodeAction<CR>
+nnoremap <silent> <leader>rn <cmd>execute 'YcmCompleter RefactorRename' input( 'Rename to: ' )<CR>
+vnoremap <leader>rn :ALECodeAction<CR>
 let g:ycm_enable_inlay_hints=1
 "}}}
 
@@ -704,23 +668,14 @@ let g:undotree_HelpLine = 0
 let g:undotree_SetFocusWhenToggle = 1
 "}}}
 
-"Vista {{{
-
-" let g:vista_default_executive = 'ale'
-" nnoremap <Leader>t :Vista finder<CR>
-let g:vista_disable_statusline = 0
-" This should be added in users' vimrc
-autocmd VimEnter * call vista#RunForNearestMethodOrFunction()
-let g:vista_fzf_preview = ['right:50%']
-
-"}}}
-
 "Git {{{
 nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e zsh -ic tig',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e zsh -ic "tig blame -w '.expand("%").'"',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gc :Git checkout %<CR>
 
 nnoremap <silent> <leader>gd :Gdiffsplit<CR>
+nnoremap <silent> <leader>wd :windo diffthis<CR>
+nnoremap <silent> <leader>db :vsplit<CR>:bnext<CR>:windo diffthis<CR>
 nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e zsh -ic "tig log -w" '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <Leader>gm :call setbufvar(winbufnr(popup_atcursor(systemlist("cd " . shellescape(fnamemodify(resolve(expand('%:p')), ":h")) . " && git log --no-merges -n 1 -L " . shellescape(line("v") . "," . line(".") . ":" . resolve(expand("%:p")))), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 nnoremap <silent> <leader>gp :call Flt_term_win('lazygit',0.9,0.6,'Todo')<CR>
@@ -739,7 +694,8 @@ xmap ah <plug>(signify-motion-outer-visual)
 "Fugitive
 nmap <leader>dg :diffget<CR>
 nmap <leader>dp :diffput<CR>
-
+" Gitlens
+let g:GIT_LENS_ENABLED = 1
 
 "}}}
 
@@ -1031,41 +987,6 @@ function! SqlFormatter()
     " set mappings...
     map ,pt  :%!sqlformat --reindent --keywords upper --identifiers lower -<CR>
 endfunction
-
-" Text Highlighter = <leader>h[1-4]
-function! HiInterestingWord(n)
-    " Save our location.
-    normal! mz
-    " Yank the current word into the z register.
-    normal! "zyiw
-    " Calculate an arbitrary match ID.  Hopefully nothing else is using it.
-    let mid = 86750 + a:n
-    " Clear existing matches, but don't worry if they don't exist.
-    silent! call matchdelete(mid)
-    " Construct a literal pattern that has to match at boundaries.
-    let pat = '\V\<' . escape(@z, '\' . '\>')
-    " Actually match the words.
-    call matchadd("InterestingWord" . a:n, pat, 1, mid)
-    " Move back to our original location.
-    normal! `z
-endfunction
-
-nnoremap <leader>hh :call clearmatches()<CR>:noh<CR>
-nnoremap <silent> <leader>h1 :call HiInterestingWord(1)<cr>
-nnoremap <silent> <leader>h2 :call HiInterestingWord(2)<cr>
-nnoremap <silent> <leader>h3 :call HiInterestingWord(3)<cr>
-nnoremap <silent> <leader>h4 :call HiInterestingWord(4)<cr>
-nnoremap <silent> <leader>h5 :call HiInterestingWord(5)<cr>
-nnoremap <silent> <leader>h6 :call HiInterestingWord(6)<cr>
-
-
-hi def InterestingWord1 guifg=#000000 ctermfg=16 guibg=#ffa724 ctermbg=214
-hi def InterestingWord2 guifg=#000000 ctermfg=16 guibg=#aeee00 ctermbg=154
-hi def InterestingWord3 guifg=#000000 ctermfg=16 guibg=#8cffba ctermbg=121
-hi def InterestingWord4 guifg=#000000 ctermfg=16 guibg=#b88853 ctermbg=137
-hi def InterestingWord5 guifg=#000000 ctermfg=16 guibg=#ff9eb8 ctermbg=211
-hi def InterestingWord6 guifg=#000000 ctermfg=16 guibg=#ff2c4b ctermbg=195
-highlight search ctermfg=white ctermbg=3423513
 
 " Clear SearchHighlight
 noremap <expr> <Plug>(StopHL) execute('nohlsearch')[-1]
