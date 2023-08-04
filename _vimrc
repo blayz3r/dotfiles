@@ -50,8 +50,7 @@ Plug 'jiangmiao/auto-pairs'
 Plug 'SirVer/ultisnips'
 Plug 'ervandew/supertab'
 "Search enhancer
-Plug 'junegunn/fzf',  { 'dir': '~/.fzf' }
-Plug 'junegunn/fzf.vim'
+Plug 'blayz3r/fuzzyy'
 Plug 'osyo-manga/vim-anzu'
 Plug 'osyo-manga/vim-over'
 "R
@@ -357,16 +356,83 @@ endif
 "" Command mode mappings.
 cnoremap <C-a> <Home>
 cnoremap <C-e> <End>
-"" 24 simple text objects
-"" ----------------------
-"" i_ i. i: i, i; i| i/ i\ i* i+ i- i#
-"" a_ a. a: a, a; a| a/ a\ a* a+ a- a#
+" 24 simple pseudo-text objects
+" -----------------------------
+" i_ i. i: i, i; i| i/ i\ i* i+ i- i#
+" a_ a. a: a, a; a| a/ a\ a* a+ a- a#
+" can take a count: 2i: 3a/
 for char in [ '_', '.', ':', ',', ';', '<bar>', '/', '<bslash>', '*', '+', '-', '#' ]
-    execute 'xnoremap i' . char . ' :<C-u>normal! T' . char . 'vt' . char . '<CR>'
-    execute 'onoremap i' . char . ' :normal vi' . char . '<CR>'
-    execute 'xnoremap a' . char . ' :<C-u>normal! F' . char . 'vf' . char . '<CR>'
-    execute 'onoremap a' . char . ' :normal va' . char . '<CR>'
+	execute "xnoremap i" . char . " :<C-u>execute 'normal! ' . v:count1 . 'T" . char . "v' . (v:count1 + (v:count1 - 1)) . 't" . char . "'<CR>"
+	execute "onoremap i" . char . " :normal vi" . char . "<CR>"
+	execute "xnoremap a" . char . " :<C-u>execute 'normal! ' . v:count1 . 'F" . char . "v' . (v:count1 + (v:count1 - 1)) . 'f" . char . "'<CR>"
+	execute "onoremap a" . char . " :normal va" . char . "<CR>"
 endfor
+" Line pseudo-text objects
+" ------------------------
+" il al
+xnoremap il g_o^
+onoremap il :<C-u>normal vil<CR>
+xnoremap al $o0
+onoremap al :<C-u>normal val<CR>
+
+" Number pseudo-text object (integer and float)
+" ---------------------------------------------
+" in
+function! VisualNumber()
+	call search('\d\([^0-9\.]\|$\)', 'cW')
+	normal v
+	call search('\(^\|[^0-9\.]\d\)', 'becW')
+endfunction
+xnoremap in :<C-u>call VisualNumber()<CR>
+onoremap in :<C-u>normal vin<CR>
+
+" Buffer pseudo-text objects
+" --------------------------
+" i% a%
+xnoremap i% :<C-u>let z = @/\|1;/^./kz<CR>G??<CR>:let @/ = z<CR>V'z
+onoremap i% :<C-u>normal vi%<CR>
+xnoremap a% GoggV
+onoremap a% :<C-u>normal va%<CR>
+
+" Square brackets pseudo-text objects
+" -----------------------------------
+" ir ar
+" can take a count: 2ar 3ir
+xnoremap ir i[
+onoremap ir :<C-u>execute 'normal v' . v:count1 . 'i['<CR>
+xnoremap ar a[
+onoremap ar :<C-u>execute 'normal v' . v:count1 . 'a['<CR>
+
+" Block comment pseudo-text objects
+" ---------------------------------
+" i? a?
+xnoremap a? [*o]*
+onoremap a? :<C-u>normal va?V<CR>
+xnoremap i? [*jo]*k
+onoremap i? :<C-u>normal vi?V<CR>
+
+" C comment pseudo-text object
+" ----------------------------
+" i? a?
+xnoremap i? [*jo]*k
+onoremap i? :<C-u>normal vi?V<CR>
+xnoremap a? [*o]*
+onoremap a? :<C-u>normal va?V<CR>
+
+" Last khange pseudo-text objects ;-)
+" -----------------------------------
+" ik ak
+xnoremap ik `]o`[
+onoremap ik :<C-u>normal vik<CR>
+onoremap ak :<C-u>normal vikV<CR>
+
+" XML/HTML/etc. attribute pseudo-text object
+" ------------------------------------------
+" ix ax	
+xnoremap ix a"oB
+onoremap ix :<C-u>normal vix<CR>
+xnoremap ax a"oBh
+onoremap ax :<C-u>normal vax<CR>
 
 "
 " `<Tab>`/`<S-Tab>` to move between matches without leaving incremental search.
@@ -375,23 +441,9 @@ endfor
 cnoremap <expr> <Tab> getcmdtype() == '/' \|\| getcmdtype() == '?' ? '<CR>/<C-r>/' : '<C-z>'
 cnoremap <expr> <S-Tab> getcmdtype() == '/' \|\| getcmdtype() == '?' ? '<CR>?<C-r>/' : '<S-Tab>'
 
-" "  Easy Align
-" " Start interactive EasyAlign in visual mode (e.g. vipga)
-xmap <leader>a <Plug>(EasyAlign)
-"
 " "Defines text objects to target text after the designated characters."
 autocmd VimEnter * call after_object#enable('=', ':', '-', '#', ' ', '/')
 
-" Start interactive EasyAlign for a motion/text object (e.g. gaip)
-nmap <leader>a <Plug>(EasyAlign)
-
-" Operate on entire file
-onoremap ia :<C-u>normal! gg^vGg_<CR>
-xnoremap ia :<C-u>normal! gg^vGg_<CR>
-"
-" Operate on entire line
-onoremap il :<C-u>normal! ^vg_<CR>
-xnoremap il :<C-u>normal! ^vg_<CR>
 "Centre after jumping
 nnoremap }   }zz
 nnoremap {   {zz
@@ -483,83 +535,19 @@ nnoremap gof :!start explorer /select,%:p<CR>
 "}}}
 
 "Fuzzy File Search Setup {{{
-" [Buffers] Jump to the existing window if possible
-let g:fzf_buffers_jump = 1
-" let g:fzf_force_termguicolors =1
-    " Customize fzf colors to match your color scheme
-    " - fzf#wrap translates this to a set of `--color` options
-" Customize fzf colors to match your color scheme
-" - fzf#wrap translates this to a set of `--color` options
-" Customize fzf colors to match your color scheme
-let g:fzf_colors =
-\ { 'fg':      ['fg', 'Normal'],
-  \ 'bg':      ['bg', 'Normal'],
-  \ 'hl':      ['fg', 'Comment'],
-  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-  \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-  \ 'hl+':     ['fg', 'Statement'],
-  \ 'info':    ['fg', 'PreProc'],
-  \ 'border':  ['fg', 'Ignore'],
-  \ 'prompt':  ['fg', 'Conditional'],
-  \ 'marker':  ['fg', 'Keyword'],
-  \ 'spinner': ['fg', 'Label'],
-  \ 'header':  ['fg', 'Comment'] }
+let g:enable_fuzzyy_keymaps = 0
 
-"See for more info: https://github.com/junegunn/fzf/wiki/Color-schemes
-"[[B]Commits] Customize the options used by 'git log':
-" let g:fzf_commits_log_options = '--graph --color=always --format="%C(auto)%h%d %s %C(black)%C(bold)%cr"'
-" [Tags] Command to generate tags file
-let g:fzf_tags_command = 'ctags -R'
+" Make Fuzzy mappings
+nnoremap <Leader>k :FuzzyGrep<CR>
+nnoremap <silent><Leader>h :FuzzyMru<CR>
+nnoremap <silent><Leader>b :FuzzyBuffer<CR>
 
-" [Commands] --expect expression for directly executing the command
-let g:fzf_commands_expect = 'alt-enter,ctrl-x'
-"FZF preview
-" CTRL-A to select all and build quickfix list
-let $BAT_THEME = 'TwoDark'
-let $FZF_DEFAULT_OPTS = "--bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-f:preview-down,ctrl-b:preview-up --preview 'bat --style=numbers --color=always --theme=TwoDark --line-range :500 {} '"
+nnoremap <silent> gv :FuzzyGrep <C-R><C-W><CR>
 
-" Make FZF mappings
-nnoremap <Leader>k :Rg! 
-nnoremap <silent><Leader>h :MRU<CR>
-nnoremap <silent><Leader>c :History:<CR>
-nnoremap <silent><Leader>t :BTags<CR>
-" Augmenting Rg command using fzf#vim#with_preview function
-"   * fzf#vim#with_preview([[options], preview window, [toggle keys...]])
-"     * For syntax-highlighting, Ruby and any of the following tools are required:
-"       - Highlight: http://www.andre-simon.de/doku/highlight/en/highlight.php
-"       - CodeRay: http://coderay.rubychan.de/
-"       - Rouge: https://github.com/jneen/rouge
-"
-"   :Rg  - Start fzf with hidden preview window that can be enabled with "?" key
-"   :Rg! - Start fzf in fullscreen and display the preview window above
-" Similarly, we can apply it to fzf#vim#grep. To use ripgrep instead of ag:
-command! -bang -nargs=* Rg
-            \ call fzf#vim#grep(
-            \ 'rg --column --color=always --line-number --colors "match:fg:black" --colors "match:bg:red" --colors "column:fg:57,143,229" --colors "path:fg:203,133,204" --colors "line:fg:128,128,128" --colors "line:style:bold" '.<q-args>, 1, 
-            \   fzf#vim#with_preview({'options': ['--color', 'hl:68,hl+:110', '--preview-window', 'sharp']}),
-            \   <bang>0)
-
-command! -bang -nargs=* MRU call fzf#vim#history({'options': ['--preview-window=sharp']})
-
-nnoremap <silent> gv :Rg <C-R><C-W><CR>
-
-"Floating window
-let g:fzf_layout = {
-    \ 'window': {
-    \     'width': 0.9,
-    \     'height': 0.6,
-    \     'highlight': 'Todo',
-    \     'border': 'sharp',
-    \ }}
 "ranger file explorer https://github.com/ranger/ranger/issues/1827
 "sudo -H pip3 install ranger-fm
 nnoremap <silent><Leader><Leader> :call RangerExplorer('wsl -e zsh -ic rangervim',0.9,0.6,'Todo')<CR>
-" nnoremap <silent> - :call Flt_term_win('bash ranger',0.9,0.6,'Todo')<CR>
-let g:fzf_action = {
-  \ 'ctrl-q': '!start',
-  \ 'ctrl-t': 'tab split',
-  \ 'ctrl-x': 'split',
-  \ 'ctrl-v': 'vsplit' }
+
 "}}}
 
 "VIM AIR-LINE {{{
@@ -630,7 +618,6 @@ set completeopt+=menuone,longest
 set completeopt+=popup
 set completepopup=height:10,width:60,highlight:Pmenu,border:off
 
-" Apply YCM FixIt
 nnoremap gd :YcmCompleter GoToDefinitionElseDeclaration<CR>
 nnoremap <C-g> :YcmCompleter GoToReferences<CR>
 nnoremap <silent> <leader>rn <cmd>execute 'YcmCompleter RefactorRename' input( 'Rename to: ' )<CR>
@@ -720,7 +707,7 @@ let g:syntastic_warning_symbol =''
 let g:ale_linters = {
             \   'javascript': ['jshint', 'eslint'],
             \   'sh': ['shellcheck'],
-            \   'python': ['pyright','jedils','flake8'],
+            \   'python': ['pyright','jedils','ruff'],
             \   'r': ['lintr','languageserver'],
             \   'bash': ['shellcheck'],
             \   'zsh': ['shellcheck']
@@ -837,20 +824,17 @@ let g:pymode_preview_height = &previewheight
 let g:codi#virtual_text = 1 
 let g:codi#virtual_text_prefix = " ❯ "
 map <M-q> :bd __run__<CR>
-"csv data
-nmap <F4> :call Flt_term_win('wsl visidata',0.9,0.6,'Todo')<CR>
-
 command! -nargs=0 -range=% PyRun call ExecutePython(<f-line1>, <f-line2>)
 autocmd FileType python nnoremap <silent> <buffer> <F5> :PyRun<CR>
 autocmd FileType python vnoremap <silent> <buffer> <F5> :PyRun<CR>
 
 autocmd FileType python nnoremap <buffer> K :call PyDocVim()<CR>
-
+" let cmdline_vsplit      = 1  
 let cmdline_app           = {}
 let cmdline_app['python']   = 'wsl ptpython'
 let cmdline_app['matlab']   = 'wsl octave'
 autocmd FileType python BracelessEnable +indent
-let g:braceless_block_key = 'b'
+let g:braceless_block_key = 'P'
 let g:codi#log= 'C:\\Users\\Tate\\temp\\codi.log'
 "Python Motions
 autocmd FileType python nnoremap <buffer> ]c  :<C-U>call Pymode_move('^<Bslash>(class<Bslash><bar><Bslash>%(async<Bslash>s<Bslash>+<Bslash>)<Bslash>=def<Bslash>)<Bslash>s', '')<CR>
@@ -941,7 +925,7 @@ function! VisualSelection(direction, extra_filter) range
     let l:pattern = substitute(l:pattern, "\n$", "", "")
 
     if a:direction == 'gv'
-        call CmdLine("Rg -e \"" . l:pattern . "\" <CR>")
+        call CmdLine("FuzzyGrep \"" . l:pattern . "\" <CR>")
     elseif a:direction == 'replace'
         exe "OverCommandLine"."%s" . '/'. l:pattern . '/'
     endif
