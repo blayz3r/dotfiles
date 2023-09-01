@@ -31,7 +31,6 @@ Plug 'tomtom/tcomment_vim',
 Plug 'blayz3r/vimcmdline'
 Plug 'ryanoasis/vim-devicons'
 Plug 'blayz3r/vim-hexokinase', { 'do': 'make hexokinase' }
-Plug 'mhinz/vim-signify'
 Plug 'blayz3r/codi.vim'
 "Enhance motions
 Plug 'justinmk/vim-sneak'
@@ -58,6 +57,7 @@ Plug 'jalvesaq/Nvim-R', {'for': 'r'}
 " Git
 Plug 'tpope/vim-fugitive'
 Plug 'Eliot00/git-lens.vim'
+Plug 'mhinz/vim-signify'
 call plug#end()            " required
 "}}}
 
@@ -452,7 +452,8 @@ nnoremap [[  [[zz
 nnoremap []  []zz
 nnoremap ][  ][zz
 "Autopairs
-let g:AutoPairsShortcutJump ='<M-p>' 
+let g:AutoPairsFlyMode = 1
+let g:AutoPairsShortcutJump ='<M-n>' 
 "}}}
 
 "Search {{{
@@ -535,17 +536,22 @@ nnoremap gof :!start explorer /select,%:p<CR>
 "}}}
 
 "Fuzzy File Search Setup {{{
+let g:enable_fuzzyy_MRU_files = 1
 let g:enable_fuzzyy_keymaps = 0
-
+let g:files_respect_gitignore = 1
+" let g:files_only_git_files = 1
 " Make Fuzzy mappings
 nnoremap <Leader>k :FuzzyGrep<CR>
-nnoremap <silent><Leader>h :FuzzyMru<CR>
+nnoremap <Leader>f :FuzzyFiles<CR>
+nnoremap <silent><Leader>h :FuzzyMRUFiles<CR>
 nnoremap <silent><Leader>b :FuzzyBuffer<CR>
+nnoremap <silent><Leader>c :FuzzyCommands<CR>
 
 nnoremap <silent> gv :FuzzyGrep <C-R><C-W><CR>
 
 "ranger file explorer https://github.com/ranger/ranger/issues/1827
 "sudo -H pip3 install ranger-fm
+"wsl -e zsh -ic unixapp
 nnoremap <silent><Leader><Leader> :call RangerExplorer('wsl -e zsh -ic rangervim',0.9,0.6,'Todo')<CR>
 
 "}}}
@@ -656,17 +662,17 @@ let g:undotree_SetFocusWhenToggle = 1
 "}}}
 
 "Git {{{
-nnoremap <silent> <leader>ga :call Flt_term_win('wsl -e zsh -ic tig',0.9,0.6,'Todo')<CR>
-nnoremap <silent> <leader>gb :call Flt_term_win('wsl -e zsh -ic "tig blame -w '.expand("%").'"',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>ga :call Flt_term_win('tig.exe',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gb :call Flt_term_win('tig.exe blame -w '.expand("%").'"',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gc :Git checkout %<CR>
 
 nnoremap <silent> <leader>gd :Gdiffsplit<CR>
 nnoremap <silent> <leader>wd :windo diffthis<CR>
 nnoremap <silent> <leader>db :vsplit<CR>:bnext<CR>:windo diffthis<CR>
-nnoremap <silent> <leader>gl :call Flt_term_win('wsl -e zsh -ic "tig log -w" '.expand("%"),0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gl :call Flt_term_win('tig.exe log -w '.expand("%"),0.9,0.6,'Todo')<CR>
 nnoremap <silent> <Leader>gm :call setbufvar(winbufnr(popup_atcursor(systemlist("cd " . shellescape(fnamemodify(resolve(expand('%:p')), ":h")) . " && git log --no-merges -n 1 -L " . shellescape(line("v") . "," . line(".") . ":" . resolve(expand("%:p")))), { "padding": [1,1,1,1], "pos": "botleft", "wrap": 0 })), "&filetype", "git")<CR>
 nnoremap <silent> <leader>gp :call Flt_term_win('lazygit',0.9,0.6,'Todo')<CR>
-nnoremap <silent> <leader>gs :call Flt_term_win('wsl -e zsh -ic "tig status"',0.9,0.6,'Todo')<CR>
+nnoremap <silent> <leader>gs :call Flt_term_win('tig.exe status',0.9,0.6,'Todo')<CR>
 nnoremap <silent> <leader>gw :Gwrite<CR>
 
 "Vim-signify  hunk jumping
@@ -925,7 +931,7 @@ function! VisualSelection(direction, extra_filter) range
     let l:pattern = substitute(l:pattern, "\n$", "", "")
 
     if a:direction == 'gv'
-        call CmdLine("FuzzyGrep \"" . l:pattern . "\" <CR>")
+        call CmdLine("FuzzyGrep " . l:pattern . "<CR>")
     elseif a:direction == 'replace'
         exe "OverCommandLine"."%s" . '/'. l:pattern . '/'
     endif
