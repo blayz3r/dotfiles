@@ -53,7 +53,7 @@ Plug 'blayz3r/fuzzyy'
 Plug 'osyo-manga/vim-anzu'
 Plug 'osyo-manga/vim-over'
 "R
-Plug 'jalvesaq/Nvim-R', {'for': 'r'}
+Plug 'blayz3r/Nvim-R', {'for': 'r'}
 " Git
 Plug 'tpope/vim-fugitive'
 Plug 'Eliot00/git-lens.vim'
